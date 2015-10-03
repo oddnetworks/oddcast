@@ -1,0 +1,21 @@
+{
+  "name"        : "oddcast",
+  "version"     : "0.1.0",
+  "description" : "An event broadcast and queue API module.",
+  "author"      : "Odd Networks (http://oddnetworks.co)",
+  "main"        : "./index.js",
+  "scripts"     : {
+    "lint": "xo"
+  },
+  "repository"  : {
+    "type" : "git",
+    "url"  : ""
+  },
+  "dependencies": {
+    "bluebird" : "2.10.2",
+    "patrun"   : "0.5.0"
+  },
+  "devDependencies": {
+    "xo" : "0.9.0"
+  }
+}
