@@ -1,0 +1,20 @@
+# Ignore TextMate project files
+*.tmproj
+
+# Ignore Mac OS metadata files
+.DS_Store
+
+# Ignore Mac OS X extended file attribute files
+._*
+._*/
+
+# Ignore Vim .swp files and temp backups
+*.swp
+*~
+
+# Emacs tags files
+TAGS
+*.tags
+
+# node modules
+node_modules
