@@ -21,24 +21,31 @@ test('before all', function (t) {
 });
 
 test('spam channel with handler', function (t) {
-	t.plan(4);
+	t.plan(5);
 	var payload = {};
 	var async = false;
 
 	var handler = sinon.spy(function (arg) {
-		t.equal(arg, payload);
-		t.ok(handler.calledWithExactly(payload));
+		t.equal(arg, payload, 'got payload');
+		t.ok(handler.calledWithExactly(payload), 'exact payload');
 		t.ok(async, 'ran async');
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 1}, handler);
-	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 1}, payload);
-	t.equal(rv, true);
+	lets.spamChannel.observe({channel: 'spam', event: 1}, handler)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
+
+	lets.spamChannel.broadcast({channel: 'spam', event: 1}, payload)
+		.then(function (success) {
+			t.equal(success, true, 'success');
+		});
+
 	async = true;
 });
 
 test('spam channel with many handlers', function (t) {
-	t.plan(4);
+	t.plan(7);
 	var payload = {};
 
 	var handler1 = sinon.spy(function (arg) {
@@ -51,9 +58,19 @@ test('spam channel with many handlers', function (t) {
 		t.ok(handler2.calledWithExactly(payload));
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 2}, handler1);
-	lets.spamChannel.observe({channel: 'spam', event: 2}, handler2);
-	lets.spamChannel.broadcast({channel: 'spam', event: 2}, payload);
+	lets.spamChannel.observe({channel: 'spam', event: 2}, handler1)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset 1');
+		});
+	lets.spamChannel.observe({channel: 'spam', event: 2}, handler2)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset 2');
+		});
+
+	lets.spamChannel.broadcast({channel: 'spam', event: 2}, payload)
+		.then(function (success) {
+			t.equal(success, true, 'success');
+		});
 });
 
 test('spam channel called without handler', function (t) {
@@ -61,10 +78,14 @@ test('spam channel called without handler', function (t) {
 	var handler = sinon.spy();
 
 	lets.spamChannel.observe({channel: 'spam', event: 'foo'}, handler);
-	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 3}, {});
-	t.equal(rv, false);
+
+	lets.spamChannel.broadcast({channel: 'spam', event: 3}, {})
+		.then(function (success) {
+			t.equal(success, false, 'success');
+		});
+
 	setTimeout(function () {
-		t.equal(handler.callCount, 0);
+		t.equal(handler.callCount, 0, 'count');
 	}, 20);
 });
 
@@ -76,14 +97,18 @@ test('spam channel add and remove handler', function (t) {
 	lets.spamChannel.broadcast({channel: 'spam', event: 4}, {});
 
 	setTimeout(function () {
-		t.equal(handler.callCount, 1);
-		var removed = lets.spamChannel.removeObserver({channel: 'spam', event: 4}, handler);
-		t.equal(removed, true);
-		var rv = lets.spamChannel.broadcast({channel: 'spam', event: 4}, {});
-		t.equal(rv, false);
+		t.equal(handler.callCount, 1, 'first call count');
+		lets.spamChannel.removeObserver({channel: 'spam', event: 4}, handler)
+			.then(function (removed) {
+				t.equal(removed, true, 'removed');
+				lets.spamChannel.broadcast({channel: 'spam', event: 4}, {})
+					.then(function (success) {
+						t.equal(success, false, 'success');
+					});
+			});
 
 		setTimeout(function () {
-			t.equal(handler.callCount, 1);
+			t.equal(handler.callCount, 1, 'last call caount');
 		}, 20);
 	}, 20);
 });
@@ -97,58 +122,70 @@ test('spam channel with an error in a handler', function (t) {
 	});
 
 	lets.spamChannel.observe({channel: 'spam', event: 5}, handler);
-	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 5}, {});
-	t.equal(rv, true);
+
+	lets.spamChannel.broadcast({channel: 'spam', event: 5}, {})
+		.then(function (success) {
+			t.equal(success, true, 'success');
+		});
 
 	lets.spamChannel.on('error', function (e) {
-		t.equal(e, err);
+		t.equal(e, err, 'error');
 	});
 });
 
 test('command channel with handler', function (t) {
-	t.plan(4);
+	t.plan(5);
 	var payload = {};
 	var async = false;
 
 	var handler = sinon.spy(function (arg) {
-		t.equal(arg, payload);
-		t.ok(handler.calledWithExactly(payload));
+		t.equal(arg, payload, 'payload');
+		t.ok(handler.calledWithExactly(payload), 'exact payload');
 		t.ok(async, 'ran async');
 	});
 
-	lets.commandChannel.addHandler({channel: 'command', event: 1}, handler);
-	var rv = lets.commandChannel.send({channel: 'command', event: 1}, payload);
-	t.equal(rv, true);
+	lets.commandChannel.addHandler({channel: 'command', event: 1}, handler)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
+
+	lets.commandChannel.send({channel: 'command', event: 1}, payload)
+		.then(function (success) {
+			t.equal(success, true, 'success');
+		});
+
 	async = true;
 });
 
 test('command channel with many handlers', function (t) {
-	t.plan(5);
+	t.plan(4);
 	var payload = {};
 	var handler1;
 	var handler2;
 
 	handler1 = sinon.spy(function (arg) {
-		t.equal(arg, payload);
-		t.ok(handler1.calledWithExactly(payload));
+		t.equal(arg, payload, 'got payload');
 		setTimeout(function () {
-			t.equal(handler2.callCount, 0);
+			t.equal(handler2.callCount, 0, 'count handler2');
 		}, 20);
 	});
 
 	handler2 = sinon.spy(function (arg) {
-		t.equal(arg, payload);
-		t.ok(handler1.calledWithExactly(payload));
+		t.equal(arg, payload, 'got payload');
 		setTimeout(function () {
-			t.equal(handler1.callCount, 0);
+			t.equal(handler1.callCount, 0, 'count handler1');
 		}, 20);
 	});
 
-	var isset1 = lets.commandChannel.addHandler({channel: 'command', event: 2}, handler1);
-	t.equal(isset1, true);
+	lets.commandChannel.addHandler({channel: 'command', event: 2}, handler1)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
 
-	var isset2 = lets.commandChannel.addHandler({channel: 'command', event: 2}, handler2);
-	t.equal(isset2, true);
+	lets.commandChannel.addHandler({channel: 'command', event: 2}, handler2)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
 
 	lets.commandChannel.send({channel: 'command', event: 2}, payload);
 });
@@ -158,10 +195,14 @@ test('command channel called without handler', function (t) {
 	var handler = sinon.spy();
 
 	lets.commandChannel.addHandler({channel: 'command', event: 'foo'}, handler);
-	var rv = lets.commandChannel.send({channel: 'command', event: 3}, {});
-	t.equal(rv, false);
+
+	lets.commandChannel.send({channel: 'command', event: 3}, {})
+		.then(function (success) {
+			t.equal(success, false, 'success');
+		});
+
 	setTimeout(function () {
-		t.equal(handler.callCount, 0);
+		t.equal(handler.callCount, 0, 'count');
 	}, 20);
 });
 
@@ -174,13 +215,17 @@ test('command channel add and remove handler', function (t) {
 
 	setTimeout(function () {
 		t.equal(handler.callCount, 1);
-		var removed = lets.commandChannel.removeHandler({channel: 'command', event: 4}, handler);
-		t.equal(removed, true);
-		var rv = lets.commandChannel.send({channel: 'command', event: 4}, {});
-		t.equal(rv, false);
+		lets.commandChannel.removeHandler({channel: 'command', event: 4}, handler)
+			.then(function (removed) {
+				t.equal(removed, true, 'removed');
+				lets.commandChannel.send({channel: 'command', event: 4}, {})
+					.then(function (success) {
+						t.equal(success, false, 'success');
+					});
+			});
 
 		setTimeout(function () {
-			t.equal(handler.callCount, 1);
+			t.equal(handler.callCount, 1, 'count');
 		}, 20);
 	}, 20);
 });
@@ -194,10 +239,12 @@ test('command channel with an error in a handler', function (t) {
 	});
 
 	lets.commandChannel.addHandler({channel: 'command', event: 5}, handler);
-	var rv = lets.commandChannel.send({channel: 'command', event: 5}, {});
-	t.equal(rv, true);
+	lets.commandChannel.send({channel: 'command', event: 5}, {})
+		.then(function (success) {
+			t.equal(success, true, 'success');
+		});
 
 	lets.commandChannel.on('error', function (e) {
-		t.equal(e, err);
+		t.equal(e, err, 'error');
 	});
 });
