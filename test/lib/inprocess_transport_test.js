@@ -14,8 +14,8 @@ test('before all', function (t) {
 	lets.spamChannel.use({channel: 'spam'}, inprocessTransport);
 	lets.commandChannel = oddcast.newCommandChannel();
 	lets.commandChannel.use({channel: 'command'}, inprocessTransport);
-	lets.localChannel = oddcast.newLocalChannel();
-	lets.localChannel.use({channel: 'local'}, inprocessTransport);
+	lets.requestChannel = oddcast.newRequestChannel();
+	lets.requestChannel.use({channel: 'request'}, inprocessTransport);
 	Object.freeze(lets);
 	t.end();
 });

@@ -140,7 +140,7 @@ exports.newCommandChannel = function () {
 	return self;
 };
 
-exports.newLocalChannel = function () {
+exports.newRequestChannel = function () {
 	var self = Object.create(exports.newChannelPrototype());
 
 	self.request = function (address, payload) {
@@ -160,21 +160,6 @@ exports.newLocalChannel = function () {
 	self.unregisterHandler = function (address, handler) {
 		var transport = self.findTransport(address);
 		return transport.unregisterHandler(address, handler);
-	};
-
-	self.trigger = function (pattern, payload) {
-		var transport = self.findTransport(pattern);
-		return transport.trigger(pattern, payload);
-	};
-
-	self.listen = function (pattern, handler) {
-		var transport = self.findTransport(pattern);
-		return transport.listen(pattern, handler);
-	};
-
-	self.stopListening = function (pattern, handler) {
-		var transport = self.findTransport(pattern);
-		return transport.stopListening(pattern, handler);
 	};
 
 	return self;
