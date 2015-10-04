@@ -1,12 +1,14 @@
 'use strict';
 
 var Promise = require('bluebird');
+var EventEmitter = require('events');
 var patrun = require('patrun');
 
 var errors = require('./lib/errors');
 
 exports.newChannelPrototype = function () {
-	var self = Object.create(null);
+	var self = Object.create(EventEmitter.prototype);
+	EventEmitter.init.call(self);
 	var transportIndex = Object.create(null);
 	var transportMatcher = exports.createSingleMatcher();
 	var singleHandlerIndexes = Object.create(null);
@@ -200,6 +202,10 @@ exports.newChannelPrototype = function () {
 		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
 			return transportMatcher.find(pattern);
 		}
+	};
+
+	self.notifyError = function (err) {
+		self.emit('error', err);
 	};
 
 	return self;

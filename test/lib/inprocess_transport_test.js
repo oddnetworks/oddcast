@@ -3,6 +3,7 @@
 var test = require('tape');
 var sinon = require('sinon');
 
+var shared = require('../shared');
 var oddcast = require('../../');
 var inprocessTransport = require('../../lib/inprocess_transport');
 
@@ -20,7 +21,7 @@ test('before all', function (t) {
 	t.end();
 });
 
-test('spam channel called once', function (t) {
+test('spam channel with handler', function (t) {
 	t.plan(4);
 	var payload = {};
 	var async = false;
@@ -31,10 +32,29 @@ test('spam channel called once', function (t) {
 		t.ok(async, 'ran async');
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 'foo'}, handler);
-	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 'foo'}, payload);
+	lets.spamChannel.observe({channel: 'spam', event: 1}, handler);
+	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 1}, payload);
 	t.equal(rv, true);
 	async = true;
+});
+
+test('spam channel with many handlers', function (t) {
+	t.plan(4);
+	var payload = {};
+
+	var handler1 = sinon.spy(function (arg) {
+		t.equal(arg, payload);
+		t.ok(handler1.calledWithExactly(payload));
+	});
+
+	var handler2 = sinon.spy(function (arg) {
+		t.equal(arg, payload);
+		t.ok(handler2.calledWithExactly(payload));
+	});
+
+	lets.spamChannel.observe({channel: 'spam', event: 2}, handler1);
+	lets.spamChannel.observe({channel: 'spam', event: 2}, handler2);
+	lets.spamChannel.broadcast({channel: 'spam', event: 2}, payload);
 });
 
 test('spam channel called without handler', function (t) {
@@ -42,9 +62,46 @@ test('spam channel called without handler', function (t) {
 	var handler = sinon.spy();
 
 	lets.spamChannel.observe({channel: 'spam', event: 'foo'}, handler);
-	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 'bar'}, {});
+	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 3}, {});
 	t.equal(rv, false);
 	setTimeout(function () {
 		t.equal(handler.callCount, 0);
 	}, 20);
+});
+
+test('spam channel add and remove handler', function (t) {
+	t.plan(4);
+	var handler = sinon.spy();
+
+	lets.spamChannel.observe({channel: 'spam', event: 4}, handler);
+	lets.spamChannel.broadcast({channel: 'spam', event: 4}, {});
+
+	setTimeout(function () {
+		t.equal(handler.callCount, 1);
+		var removed = lets.spamChannel.removeObserver({channel: 'spam', event: 4}, handler);
+		t.equal(removed, true);
+		var rv = lets.spamChannel.broadcast({channel: 'spam', event: 4}, {});
+		t.equal(rv, false);
+
+		setTimeout(function () {
+			t.equal(handler.callCount, 1);
+		}, 20);
+	}, 20);
+});
+
+test('with an error in a handler', function (t) {
+	t.plan(2);
+
+	var err = new shared.TestError('observer handler error');
+	var handler = sinon.spy(function () {
+		throw err;
+	});
+
+	lets.spamChannel.observe({channel: 'spam', event: 5}, handler);
+	var rv = lets.spamChannel.broadcast({channel: 'spam', event: 5}, {});
+	t.equal(rv, true);
+
+	lets.spamChannel.on('error', function (e) {
+		t.equal(e, err);
+	});
 });
