@@ -9,10 +9,7 @@ var errors = require('./lib/errors');
 exports.newChannelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);
-	var transportIndex = Object.create(null);
 	var transportMatcher = exports.createSingleMatcher();
-	var singleHandlerIndexes = Object.create(null);
-	var multiHandlerIndexes = Object.create(null);
 	var singleHandlerMatchers = Object.create(null);
 	var multiHandlerMatchers = Object.create(null);
 
@@ -20,188 +17,77 @@ exports.newChannelPrototype = function () {
 		options = options || Object.create(null);
 		options.api = self;
 		var transport = transportFactory(options);
-		if (typeof pattern === 'string') {
-			transportIndex[pattern] = transport;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			transportMatcher.add(pattern, transport);
-		}
+		transportMatcher.add(pattern, transport);
 	};
 
 	self.findSingle = function (key, pattern) {
-		var index;
-		var matcher;
-		var handler;
-		if (typeof pattern === 'string') {
-			index = singleHandlerIndexes[key];
-			if (!index) {
-				return null;
-			}
-			handler = index[pattern];
-			if (!handler) {
-				return null;
-			}
-			return handler;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = singleHandlerMatchers[key];
-			if (!matcher) {
-				return null;
-			}
-			handler = matcher.find(pattern);
-			if (!handler) {
-				return null;
-			}
-			return handler;
+		var matcher = singleHandlerMatchers[key];
+		if (!matcher) {
+			return null;
 		}
+		return matcher.find(pattern);
 	};
 
 	self.addSingle = function (key, pattern, fn) {
-		var index;
-		var matcher;
-		if (typeof pattern === 'string') {
-			index = singleHandlerIndexes[key];
-			if (!index) {
-				index = singleHandlerIndexes[key] = Object.create(null);
-			}
-			if (index[pattern]) {
-				return false;
-			}
-			index[pattern] = fn;
-			return false;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = singleHandlerMatchers[key];
-			if (!matcher) {
-				matcher = singleHandlerMatchers[key] = exports.createMultiMatcher();
-			}
-			if (matcher.find(pattern)) {
-				return false;
-			}
-			matcher.add(pattern, fn);
-			return true;
+		var matcher = singleHandlerMatchers[key];
+		if (!matcher) {
+			matcher = singleHandlerMatchers[key] = exports.createMultiMatcher();
 		}
+		if (matcher.find(pattern)) {
+			return false;
+		}
+		matcher.add(pattern, fn);
+		return true;
 	};
 
-	self.removeSingle = function (key, pattern, fn) {
-		var index;
-		var matcher;
-		var found = false;
-		if (typeof pattern === 'string') {
-			index = singleHandlerIndexes[key];
-			if (!index) {
-				return false;
-			}
-			if (!index[pattern]) {
-				return false;
-			}
-			found = index[pattern] === fn;
-			delete index[pattern];
-			return found;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = singleHandlerMatchers[key];
-			if (!matcher) {
-				return false;
-			}
-			if (matcher.find(pattern)) {
-				matcher.remove(pattern);
-				return true;
-			}
+	self.removeSingle = function (key, pattern) {
+		var matcher = singleHandlerMatchers[key];
+		if (!matcher) {
 			return false;
 		}
+		if (matcher.find(pattern)) {
+			matcher.remove(pattern);
+			return true;
+		}
+		return false;
 	};
 
 	self.findMulti = function (key, pattern) {
-		var index;
-		var handlers;
-		var matcher;
-		if (typeof pattern === 'string') {
-			index = multiHandlerIndexes[key];
-			if (!index) {
-				return [];
-			}
-			handlers = index[pattern];
-			if (!handlers) {
-				return [];
-			}
-			return handlers;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = multiHandlerMatchers[key];
-			if (!matcher) {
-				return [];
-			}
-			handlers = matcher.find(pattern);
-			if (!handlers) {
-				return [];
-			}
-			return handlers;
+		var matcher = multiHandlerMatchers[key];
+		if (!matcher) {
+			return [];
 		}
+		return matcher.find(pattern) || [];
 	};
 
 	self.addMulti = function (key, pattern, fn) {
-		var index;
-		var handlers;
-		var matcher;
-		if (typeof pattern === 'string') {
-			index = multiHandlerIndexes[key];
-			if (!index) {
-				index = multiHandlerIndexes[key] = Object.create(null);
-			}
-			handlers = index[pattern];
-			if (!handlers) {
-				handlers = index[pattern] = [];
-			}
-			handlers.push(fn);
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = multiHandlerMatchers[key];
-			if (!matcher) {
-				matcher = multiHandlerMatchers[key] = exports.createMultiMatcher();
-			}
-			matcher.add(pattern, fn);
+		var matcher = multiHandlerMatchers[key];
+		if (!matcher) {
+			matcher = multiHandlerMatchers[key] = exports.createMultiMatcher();
 		}
+		matcher.add(pattern, fn);
 	};
 
 	self.removeMulti = function (key, pattern, fn) {
-		var index;
-		var handlers;
 		var i;
-		var matcher;
-		if (typeof pattern === 'string') {
-			index = multiHandlerIndexes[key];
-			if (!index) {
-				return false;
-			}
-			handlers = index[pattern];
-			if (!handlers) {
-				return false;
-			}
-			i = handlers.indexOf(fn);
-			if (i < 0) {
-				return false;
-			}
-			handlers.splice(i, 1);
-			return true;
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			matcher = multiHandlerMatchers[key];
-			if (!matcher) {
-				return false;
-			}
-			handlers = matcher.find(pattern);
-			if (!handlers) {
-				return false;
-			}
-			i = handlers.indexOf(fn);
-			if (i < 0) {
-				return false;
-			}
-			handlers.splice(i, 1);
-			return true;
+		var matcher = multiHandlerMatchers[key];
+		if (!matcher) {
+			return false;
 		}
+		var handlers = matcher.find(pattern);
+		if (!handlers) {
+			return false;
+		}
+		i = handlers.indexOf(fn);
+		if (i < 0) {
+			return false;
+		}
+		handlers.splice(i, 1);
+		return true;
 	};
 
 	self.findTransport = function (pattern) {
-		if (typeof pattern === 'string') {
-			return transportIndex[pattern];
-		} else if (typeof pattern === 'object' && !Array.isArray(pattern)) {
-			return transportMatcher.find(pattern);
-		}
+		return transportMatcher.find(pattern);
 	};
 
 	self.notifyError = function (err) {
