@@ -210,17 +210,17 @@ exports.newSpamChannel = function () {
 
 	self.broadcast = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
-		transport.broadcast(pattern, payload);
+		return transport.broadcast(pattern, payload);
 	};
 
 	self.observe = function (pattern, observer) {
 		var transport = self.findTransport(pattern);
-		transport.observe(pattern, observer);
+		return transport.observe(pattern, observer);
 	};
 
 	self.removeObserver = function (pattern, observer) {
 		var transport = self.findTransport(pattern);
-		transport.removeObserver(pattern, observer);
+		return transport.removeObserver(pattern, observer);
 	};
 
 	return self;
@@ -231,17 +231,17 @@ exports.newCommandChannel = function () {
 
 	self.send = function (address, payload) {
 		var transport = self.findTransport(address);
-		transport.send(address, payload);
+		return transport.send(address, payload);
 	};
 
 	self.addHandler = function (address, handler) {
 		var transport = self.findTransport(address);
-		transport.addHandler(address, handler);
+		return transport.addHandler(address, handler);
 	};
 
 	self.removeHandler = function (address, handler) {
 		var transport = self.findTransport(address);
-		transport.removeHandler(address, handler);
+		return transport.removeHandler(address, handler);
 	};
 
 	return self;
@@ -266,22 +266,22 @@ exports.newLocalChannel = function () {
 
 	self.unregisterHandler = function (address, handler) {
 		var transport = self.findTransport(address);
-		transport.unregisterHandler(address, handler);
+		return transport.unregisterHandler(address, handler);
 	};
 
 	self.trigger = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
-		transport.trigger(pattern, payload);
+		return transport.trigger(pattern, payload);
 	};
 
 	self.listen = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
-		transport.listen(pattern, handler);
+		return transport.listen(pattern, handler);
 	};
 
 	self.stopListening = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
-		transport.stopListening(pattern, handler);
+		return transport.stopListening(pattern, handler);
 	};
 
 	return self;
