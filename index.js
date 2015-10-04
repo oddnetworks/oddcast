@@ -66,6 +66,7 @@ exports.newChannelPrototype = function () {
 			matcher = multiHandlerMatchers[key] = exports.createMultiMatcher();
 		}
 		matcher.add(pattern, fn);
+		return true;
 	};
 
 	self.removeMulti = function (key, pattern, fn) {
