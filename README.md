@@ -6,11 +6,11 @@ Summary
 -------
 Software is easier to build and maintain when we only need to understand a small decoupled component at any given time rather than the whole system. Let's just make that assumption and call it a fact.
 
-But the thing is that model-view-controller (MVC) does not really accomplish the goal of creating decoupled components. Neither does Object Oriented programming for that matter. Software design conversations usually result in bikeshedding about which behaviors should exist on which of our models, and how those models should be mashed together to make aggregate views.
+But the thing is, model-view-controller (MVC) does not really accomplish the goal of creating decoupled components. Neither does Object Oriented programming for that matter. Software design conversations usually result in bikeshedding about which behaviors should exist on which of our models, and how those models should be mashed together to make aggregate views.
 
-Instead We should be subscribing to the idea of command/query responsibility segregation ([CQRS](http://martinfowler.com/bliki/CQRS.html)). In CQRS commands are operations that usually write our data and queries are operations that read our data. The idea is that the logic for commands and queries should never mix. Queries and commands are both racists.
+Instead, we should be subscribing to the idea of command/query responsibility segregation ([CQRS](http://martinfowler.com/bliki/CQRS.html)). In CQRS commands are operations that usually write our data and queries are operations that read our data. The idea is that the logic for commands and queries should never mix.
 
-When writing a command you need to understand how the data should be structured when written. Once you have validate the correct structure, you then broadcast successful create, update, and delete events on your data as they happen.
+When writing a command you need to understand how the data should be structured when written. Once you have validated the correct structure, you then broadcast successful create, update, and delete events on your data as they happen.
 
 When you write a view you listen for the write events broadcasted by the command operations and take appropriate action to maintain your view. You only need to understand the relevant details about the structure of written data, and the requirements of the components which will be querying your view.
 
@@ -44,7 +44,10 @@ spamChannel.use({comp: 'store'}, oddcast.processTransport, options);
 
 function onRecordSave(entity) {
   spamChannel
-    .broadcast({comp: 'store', type: entity.type, operation: 'write'}, entity);
+    .broadcast({comp: 'store', type: entity.type, operation: 'write'}, {
+      key: entity.id,
+      entity: entity
+    });
 }
 ```
 
