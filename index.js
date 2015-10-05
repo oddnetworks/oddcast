@@ -1,10 +1,9 @@
 'use strict';
 
-var Promise = require('bluebird');
 var EventEmitter = require('events');
 var patrun = require('patrun');
 
-var errors = require('./lib/errors');
+exports.errors = require('./lib/errors');
 
 exports.newChannelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
@@ -31,7 +30,7 @@ exports.newChannelPrototype = function () {
 	self.addSingle = function (key, pattern, fn) {
 		var matcher = singleHandlerMatchers[key];
 		if (!matcher) {
-			matcher = singleHandlerMatchers[key] = exports.createMultiMatcher();
+			matcher = singleHandlerMatchers[key] = exports.createSingleMatcher();
 		}
 		if (matcher.find(pattern)) {
 			return false;
@@ -122,19 +121,19 @@ exports.newSpamChannel = function () {
 exports.newCommandChannel = function () {
 	var self = Object.create(exports.newChannelPrototype());
 
-	self.send = function (address, payload) {
-		var transport = self.findTransport(address);
-		return transport.send(address, payload);
+	self.send = function (pattern, payload) {
+		var transport = self.findTransport(pattern);
+		return transport.send(pattern, payload);
 	};
 
-	self.addHandler = function (address, handler) {
-		var transport = self.findTransport(address);
-		return transport.addHandler(address, handler);
+	self.addHandler = function (pattern, handler) {
+		var transport = self.findTransport(pattern);
+		return transport.addHandler(pattern, handler);
 	};
 
-	self.removeHandler = function (address, handler) {
-		var transport = self.findTransport(address);
-		return transport.removeHandler(address, handler);
+	self.removeHandler = function (pattern, handler) {
+		var transport = self.findTransport(pattern);
+		return transport.removeHandler(pattern, handler);
 	};
 
 	return self;
@@ -143,23 +142,19 @@ exports.newCommandChannel = function () {
 exports.newRequestChannel = function () {
 	var self = Object.create(exports.newChannelPrototype());
 
-	self.request = function (address, payload) {
-		var transport = self.findTransport(address);
-		var res = transport.request(address, payload);
-		if (res === false) {
-			return Promise.reject(new errors.NotFoundError('Not found: ' + address));
-		}
-		return Promise.resolve(res);
+	self.request = function (pattern, payload) {
+		var transport = self.findTransport(pattern);
+		return transport.request(pattern, payload);
 	};
 
-	self.registerHandler = function (address, handler) {
-		var transport = self.findTransport(address);
-		return transport.registerHandler(address, handler);
+	self.registerHandler = function (pattern, handler) {
+		var transport = self.findTransport(pattern);
+		return transport.registerHandler(pattern, handler);
 	};
 
-	self.unregisterHandler = function (address, handler) {
-		var transport = self.findTransport(address);
-		return transport.unregisterHandler(address, handler);
+	self.unregisterHandler = function (pattern, handler) {
+		var transport = self.findTransport(pattern);
+		return transport.unregisterHandler(pattern, handler);
 	};
 
 	return self;

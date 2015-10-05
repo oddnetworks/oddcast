@@ -248,3 +248,136 @@ test('command channel with an error in a handler', function (t) {
 		t.equal(e, err, 'error');
 	});
 });
+
+test('request channel with handler', function (t) {
+	t.plan(5);
+	var payload = {payload: true};
+	var response = {response: true};
+	var async = false;
+
+	var handler = sinon.spy(function (arg) {
+		t.equal(arg, payload, 'payload');
+		t.ok(handler.calledWithExactly(payload), 'exact payload');
+		t.ok(async, 'ran async');
+		return response;
+	});
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 1}, handler)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
+
+	lets.requestChannel.request({channel: 'request', event: 1}, payload)
+		.then(function (res) {
+			t.equal(res, response, 'response');
+		});
+
+	async = true;
+});
+
+test('request channel with many handlers', function (t) {
+	t.plan(4);
+	var payload = {};
+	var handler;
+	var response = {};
+
+	handler = sinon.spy(function (arg) {
+		t.equal(arg, payload, 'got payload');
+		return response;
+	});
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 2}, handler)
+		.then(function (isset) {
+			t.equal(isset, true, 'isset');
+		});
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 2}, function () {})
+		.then(function (isset) {
+			t.equal(isset, false, 'not isset');
+		});
+
+	lets.requestChannel.request({channel: 'request', event: 2}, payload)
+		.then(function (res) {
+			t.equal(res, response, 'response');
+		});
+});
+
+test('request with Promise result', function (t) {
+	t.plan(1);
+	var response = {};
+
+	var handler = sinon.spy(function () {
+		return Promise.resolve(response);
+	});
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 3}, handler);
+
+	lets.requestChannel.request({channel: 'request', event: 3})
+		.then(function (res) {
+			t.equal(res, response, 'response');
+		});
+});
+
+test('request channel called without handler', function (t) {
+	t.plan(3);
+	var handler = sinon.spy();
+	var callback = sinon.spy();
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 'foo'}, handler);
+
+	lets.requestChannel.request({channel: 'request', event: 4}, {})
+		.then(callback)
+		.catch(oddcast.errors.NotFoundError, function (err) {
+			t.equal(err.message, 'No handler for the requested pattern.');
+		});
+
+	setTimeout(function () {
+		t.equal(handler.callCount, 0, 'handler count');
+		t.equal(callback.callCount, 0, 'callback count');
+	}, 20);
+});
+
+test('request channel add and remove handler', function (t) {
+	t.plan(5);
+	var handler = sinon.spy();
+	var callback = sinon.spy();
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 5}, handler);
+	lets.requestChannel.request({channel: 'request', event: 5}, {});
+
+	setTimeout(function () {
+		t.equal(handler.callCount, 1);
+		lets.requestChannel.unregisterHandler({channel: 'request', event: 5}, handler)
+			.then(function (removed) {
+				t.equal(removed, true, 'removed');
+				lets.requestChannel.request({channel: 'request', event: 5}, {})
+					.then(callback)
+					.catch(oddcast.errors.NotFoundError, function (err) {
+						t.equal(err.message, 'No handler for the requested pattern.');
+					});
+			});
+
+		setTimeout(function () {
+			t.equal(handler.callCount, 1, 'handler count');
+			t.equal(callback.callCount, 0, 'callback count');
+		}, 20);
+	}, 20);
+});
+
+test('requeset channel with an error in a handler', function (t) {
+	t.plan(2);
+
+	var err = new shared.TestError('request handler error');
+	var handler = sinon.spy(function () {
+		throw err;
+	});
+	var callback = sinon.spy();
+
+	lets.requestChannel.registerHandler({channel: 'request', event: 6}, handler);
+	lets.requestChannel.request({channel: 'request', event: 6}, {})
+		.then(callback)
+		.catch(shared.TestError, function (e) {
+			t.equal(e, err, 'error');
+			t.equal(callback.callCount, 0, 'callback count');
+		});
+});
