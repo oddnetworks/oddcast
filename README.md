@@ -20,15 +20,15 @@ Quick Start
 -----------
 Oddcast supports 3 kinds of messages: Broadcast, Command, and Request. To use them you create a channel for the one you want, and give it a transport to use under the covers.
 
-### Spam Channel
+### Broadcast Channel
 A Spam Channel broadcasts events throughout the system to anyone who might be listening.
 ```JS
 var oddcast = require('oddcast');
-var changes = oddcast.newBroadcastChannel();
+var events = oddcast.eventsChannel();
 var options = {};
-changes.use({comp: 'store'}, oddcast.processTransport, options);
+events.use({comp: 'store'}, oddcast.processTransport, options);
 
-changes.observe({comp: 'store', type: 'video', op: 'write'}, function (video) {
+events.observe({comp: 'store', type: 'video', op: 'write'}, function (video) {
   writeIndexRecord(video.key, video);
 });
 
@@ -36,23 +36,23 @@ changes.observe({comp: 'store', type: 'video', op: 'write'}, function (video) {
 // And in some other code, somewhere else ...
 //
 var oddcast = require('oddcast');
-var changes = oddcast.newBroadcastChannel();
+var events = oddcast.eventsChannel();
 var options = {};
-changes.use({comp: 'store'}, oddcast.processTransport, options);
+events.use({comp: 'store'}, oddcast.processTransport, options);
 
 // When a record is saved to the datastore, we broadcast it.
-changes.broadcast({comp: 'store', type: entity.type, op: 'write'}, entity);
+events.broadcast({comp: 'store', type: entity.type, op: 'write'}, entity);
 ```
 
 ### Command Channel
 A Command Channel is used for directed messages, with the expectation that the receiving component will take a specified action. The underlying transport under a command channel will usually be a message queue.
 ```JS
 var oddcast = require('oddcast');
-var store = oddcast.newCommandChannel();
+var commands = oddcast.commandChannel();
 var options = {};
-store.use({comp: 'ingest'}, oddcast.processTransport, options);
+commands.use({comp: 'ingest'}, oddcast.processTransport, options);
 
-store.addHandler({comp: 'ingest', type: 'video'}, function (item) {
+commands.receive({comp: 'ingest', type: 'video'}, function (item) {
   var entity = transformItem(item);
   var promise = saveEntity(entity).then(function () {
     // We return true so the queue knows this message has been processed.
@@ -72,14 +72,14 @@ store.addHandler({comp: 'ingest', type: 'video'}, function (item) {
 // And in some other code, somewhere else ...
 //
 var oddcast = require('oddcast');
-var store = oddcast.newCommandChannel();
+var commands = oddcast.commandChannel();
 var options = {};
-store.use({comp: 'ingest'}, oddcast.processTransport, options);
+commands.use({comp: 'store'}, oddcast.processTransport, options);
 
 // Fetch data from a remote API and queue it up for the store
 // by sending off a "job" for each one.
 items.forEach(function (item) {
-  store.send({comp: 'ingest', type: 'video'}, item);
+  commands.send({comp: 'ingest', type: 'video'}, item);
 });
 
 ```
@@ -88,11 +88,11 @@ items.forEach(function (item) {
 A Request Channel is used when you know who has the data you need, and would like to request it from them.
 ```JS
 var oddcast = require('oddcast');
-var query = oddcast.newRequestChannel();
+var req = oddcast.requestChannel();
 var options = {};
-query.use({comp: 'views'}, oddcast.processTransport, options);
+req.use({comp: 'views'}, oddcast.processTransport, options);
 
-query.registerHandler({view: 'homePage'}, function () {
+req.respond({view: 'homePage'}, function () {
   return {
     featuredVideo: getFeaturedVideo(),
     recentlyAdded: getRecentlyAdded(),
@@ -104,13 +104,13 @@ query.registerHandler({view: 'homePage'}, function () {
 // And in some other code, somewhere else ...
 //
 var oddcast = require('oddcast');
-var query = oddcast.newRequestChannel();
+var req = oddcast.requestChannel();
 var options = {};
-query.use({comp: 'views'}, oddcast.processTransport, options);
+req.use({comp: 'views'}, oddcast.processTransport, options);
 
 // Respond to an HTTP request by querying your view.
 Router.get('/', function (req, res) {
-  query
+  req
     .request({comp: views, view: 'homePage'})
     .then(function (viewData) {
       res.render('homePage.html', viewData);
