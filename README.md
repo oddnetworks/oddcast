@@ -24,7 +24,7 @@ Oddcast supports 3 kinds of messages: Broadcast, Command, and Request. To use th
 A Spam Channel broadcasts events throughout the system to anyone who might be listening.
 ```JS
 var oddcast = require('oddcast');
-var events = oddcast.eventsChannel();
+var events = oddcast.eventChannel();
 var options = {};
 events.use({comp: 'store'}, oddcast.processTransport, options);
 
@@ -36,7 +36,7 @@ events.observe({comp: 'store', type: 'video', op: 'write'}, function (video) {
 // And in some other code, somewhere else ...
 //
 var oddcast = require('oddcast');
-var events = oddcast.eventsChannel();
+var events = oddcast.eventChannel();
 var options = {};
 events.use({comp: 'store'}, oddcast.processTransport, options);
 

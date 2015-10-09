@@ -5,7 +5,7 @@ var patrun = require('patrun');
 
 exports.errors = require('./lib/errors');
 
-exports.newChannelPrototype = function () {
+exports.channelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);
 	var transportMatcher = exports.createSingleMatcher();
@@ -97,8 +97,8 @@ exports.newChannelPrototype = function () {
 	return self;
 };
 
-exports.newBroadcastChannel = function () {
-	var self = Object.create(exports.newChannelPrototype());
+exports.eventChannel = function () {
+	var self = Object.create(exports.channelPrototype());
 
 	self.broadcast = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
@@ -110,7 +110,7 @@ exports.newBroadcastChannel = function () {
 		return transport.observe(pattern, observer);
 	};
 
-	self.removeObserver = function (pattern, observer) {
+	self.remove = function (pattern, observer) {
 		var transport = self.findTransport(pattern);
 		return transport.removeObserver(pattern, observer);
 	};
@@ -118,20 +118,20 @@ exports.newBroadcastChannel = function () {
 	return self;
 };
 
-exports.newCommandChannel = function () {
-	var self = Object.create(exports.newChannelPrototype());
+exports.commandChannel = function () {
+	var self = Object.create(exports.channelPrototype());
 
 	self.send = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
 		return transport.send(pattern, payload);
 	};
 
-	self.addHandler = function (pattern, handler) {
+	self.receive = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
 		return transport.addHandler(pattern, handler);
 	};
 
-	self.removeHandler = function (pattern, handler) {
+	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
 		return transport.removeHandler(pattern, handler);
 	};
@@ -139,20 +139,20 @@ exports.newCommandChannel = function () {
 	return self;
 };
 
-exports.newRequestChannel = function () {
-	var self = Object.create(exports.newChannelPrototype());
+exports.requestChannel = function () {
+	var self = Object.create(exports.channelPrototype());
 
 	self.request = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
 		return transport.request(pattern, payload);
 	};
 
-	self.registerHandler = function (pattern, handler) {
+	self.reply = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
 		return transport.registerHandler(pattern, handler);
 	};
 
-	self.unregisterHandler = function (pattern, handler) {
+	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
 		return transport.unregisterHandler(pattern, handler);
 	};

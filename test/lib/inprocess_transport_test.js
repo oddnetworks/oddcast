@@ -10,12 +10,12 @@ var inprocessTransport = require('../../lib/inprocess_transport');
 var lets = Object.create(null);
 
 test('before all', function (t) {
-	lets.broadcastChannel = oddcast.newBroadcastChannel();
-	lets.broadcastChannel.use({channel: 'broadcast'}, inprocessTransport);
-	lets.commandChannel = oddcast.newCommandChannel();
-	lets.commandChannel.use({channel: 'command'}, inprocessTransport);
-	lets.requestChannel = oddcast.newRequestChannel();
-	lets.requestChannel.use({channel: 'request'}, inprocessTransport);
+	lets.events = oddcast.eventChannel();
+	lets.events.use({channel: 'broadcast'}, inprocessTransport);
+	lets.commands = oddcast.commandChannel();
+	lets.commands.use({channel: 'command'}, inprocessTransport);
+	lets.req = oddcast.requestChannel();
+	lets.req.use({channel: 'request'}, inprocessTransport);
 	Object.freeze(lets);
 	t.end();
 });
@@ -31,12 +31,12 @@ test('broadcast channel with handler', function (t) {
 		t.ok(async, 'ran async');
 	});
 
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 1}, handler)
+	lets.events.observe({channel: 'broadcast', event: 1}, handler)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 1}, payload)
+	lets.events.broadcast({channel: 'broadcast', event: 1}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -58,16 +58,16 @@ test('broadcast channel with many handlers', function (t) {
 		t.ok(handler2.calledWithExactly(payload));
 	});
 
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 2}, handler1)
+	lets.events.observe({channel: 'broadcast', event: 2}, handler1)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset 1');
 		});
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 2}, handler2)
+	lets.events.observe({channel: 'broadcast', event: 2}, handler2)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset 2');
 		});
 
-	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 2}, payload)
+	lets.events.broadcast({channel: 'broadcast', event: 2}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -77,9 +77,9 @@ test('broadcast channel called without handler', function (t) {
 	t.plan(2);
 	var handler = sinon.spy();
 
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 'foo'}, handler);
+	lets.events.observe({channel: 'broadcast', event: 'foo'}, handler);
 
-	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 3}, {})
+	lets.events.broadcast({channel: 'broadcast', event: 3}, {})
 		.then(function (success) {
 			t.equal(success, false, 'success');
 		});
@@ -93,15 +93,15 @@ test('broadcast channel add and remove handler', function (t) {
 	t.plan(4);
 	var handler = sinon.spy();
 
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 4}, handler);
-	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 4}, {});
+	lets.events.observe({channel: 'broadcast', event: 4}, handler);
+	lets.events.broadcast({channel: 'broadcast', event: 4}, {});
 
 	setTimeout(function () {
 		t.equal(handler.callCount, 1, 'first call count');
-		lets.broadcastChannel.removeObserver({channel: 'broadcast', event: 4}, handler)
+		lets.events.remove({channel: 'broadcast', event: 4}, handler)
 			.then(function (removed) {
 				t.equal(removed, true, 'removed');
-				lets.broadcastChannel.broadcast({channel: 'broadcast', event: 4}, {})
+				lets.events.broadcast({channel: 'broadcast', event: 4}, {})
 					.then(function (success) {
 						t.equal(success, false, 'success');
 					});
@@ -121,14 +121,14 @@ test('broadcast channel with an error in a handler', function (t) {
 		throw err;
 	});
 
-	lets.broadcastChannel.observe({channel: 'broadcast', event: 5}, handler);
+	lets.events.observe({channel: 'broadcast', event: 5}, handler);
 
-	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 5}, {})
+	lets.events.broadcast({channel: 'broadcast', event: 5}, {})
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
 
-	lets.broadcastChannel.on('error', function (e) {
+	lets.events.on('error', function (e) {
 		t.equal(e, err, 'error');
 	});
 });
@@ -144,12 +144,12 @@ test('command channel with handler', function (t) {
 		t.ok(async, 'ran async');
 	});
 
-	lets.commandChannel.addHandler({channel: 'command', event: 1}, handler)
+	lets.commands.receive({channel: 'command', event: 1}, handler)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.commandChannel.send({channel: 'command', event: 1}, payload)
+	lets.commands.send({channel: 'command', event: 1}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -177,26 +177,26 @@ test('command channel with many handlers', function (t) {
 		}, 20);
 	});
 
-	lets.commandChannel.addHandler({channel: 'command', event: 2}, handler1)
+	lets.commands.receive({channel: 'command', event: 2}, handler1)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.commandChannel.addHandler({channel: 'command', event: 2}, handler2)
+	lets.commands.receive({channel: 'command', event: 2}, handler2)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.commandChannel.send({channel: 'command', event: 2}, payload);
+	lets.commands.send({channel: 'command', event: 2}, payload);
 });
 
 test('command channel called without handler', function (t) {
 	t.plan(2);
 	var handler = sinon.spy();
 
-	lets.commandChannel.addHandler({channel: 'command', event: 'foo'}, handler);
+	lets.commands.receive({channel: 'command', event: 'foo'}, handler);
 
-	lets.commandChannel.send({channel: 'command', event: 3}, {})
+	lets.commands.send({channel: 'command', event: 3}, {})
 		.then(function (success) {
 			t.equal(success, false, 'success');
 		});
@@ -210,15 +210,15 @@ test('command channel add and remove handler', function (t) {
 	t.plan(4);
 	var handler = sinon.spy();
 
-	lets.commandChannel.addHandler({channel: 'command', event: 4}, handler);
-	lets.commandChannel.send({channel: 'command', event: 4}, {});
+	lets.commands.receive({channel: 'command', event: 4}, handler);
+	lets.commands.send({channel: 'command', event: 4}, {});
 
 	setTimeout(function () {
 		t.equal(handler.callCount, 1);
-		lets.commandChannel.removeHandler({channel: 'command', event: 4}, handler)
+		lets.commands.remove({channel: 'command', event: 4}, handler)
 			.then(function (removed) {
 				t.equal(removed, true, 'removed');
-				lets.commandChannel.send({channel: 'command', event: 4}, {})
+				lets.commands.send({channel: 'command', event: 4}, {})
 					.then(function (success) {
 						t.equal(success, false, 'success');
 					});
@@ -238,13 +238,13 @@ test('command channel with an error in a handler', function (t) {
 		throw err;
 	});
 
-	lets.commandChannel.addHandler({channel: 'command', event: 5}, handler);
-	lets.commandChannel.send({channel: 'command', event: 5}, {})
+	lets.commands.receive({channel: 'command', event: 5}, handler);
+	lets.commands.send({channel: 'command', event: 5}, {})
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
 
-	lets.commandChannel.on('error', function (e) {
+	lets.commands.on('error', function (e) {
 		t.equal(e, err, 'error');
 	});
 });
@@ -262,12 +262,12 @@ test('request channel with handler', function (t) {
 		return response;
 	});
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 1}, handler)
+	lets.req.reply({channel: 'request', event: 1}, handler)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.requestChannel.request({channel: 'request', event: 1}, payload)
+	lets.req.request({channel: 'request', event: 1}, payload)
 		.then(function (res) {
 			t.equal(res, response, 'response');
 		});
@@ -286,17 +286,17 @@ test('request channel with many handlers', function (t) {
 		return response;
 	});
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 2}, handler)
+	lets.req.reply({channel: 'request', event: 2}, handler)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 2}, function () {})
+	lets.req.reply({channel: 'request', event: 2}, function () {})
 		.then(function (isset) {
 			t.equal(isset, false, 'not isset');
 		});
 
-	lets.requestChannel.request({channel: 'request', event: 2}, payload)
+	lets.req.request({channel: 'request', event: 2}, payload)
 		.then(function (res) {
 			t.equal(res, response, 'response');
 		});
@@ -310,9 +310,9 @@ test('request with Promise result', function (t) {
 		return Promise.resolve(response);
 	});
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 3}, handler);
+	lets.req.reply({channel: 'request', event: 3}, handler);
 
-	lets.requestChannel.request({channel: 'request', event: 3})
+	lets.req.request({channel: 'request', event: 3})
 		.then(function (res) {
 			t.equal(res, response, 'response');
 		});
@@ -323,9 +323,9 @@ test('request channel called without handler', function (t) {
 	var handler = sinon.spy();
 	var callback = sinon.spy();
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 'foo'}, handler);
+	lets.req.reply({channel: 'request', event: 'foo'}, handler);
 
-	lets.requestChannel.request({channel: 'request', event: 4}, {})
+	lets.req.request({channel: 'request', event: 4}, {})
 		.then(callback)
 		.catch(oddcast.errors.NotFoundError, function (err) {
 			t.equal(err.message, 'No handler for the requested pattern.');
@@ -342,15 +342,15 @@ test('request channel add and remove handler', function (t) {
 	var handler = sinon.spy();
 	var callback = sinon.spy();
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 5}, handler);
-	lets.requestChannel.request({channel: 'request', event: 5}, {});
+	lets.req.reply({channel: 'request', event: 5}, handler);
+	lets.req.request({channel: 'request', event: 5}, {});
 
 	setTimeout(function () {
 		t.equal(handler.callCount, 1);
-		lets.requestChannel.unregisterHandler({channel: 'request', event: 5}, handler)
+		lets.req.remove({channel: 'request', event: 5}, handler)
 			.then(function (removed) {
 				t.equal(removed, true, 'removed');
-				lets.requestChannel.request({channel: 'request', event: 5}, {})
+				lets.req.request({channel: 'request', event: 5}, {})
 					.then(callback)
 					.catch(oddcast.errors.NotFoundError, function (err) {
 						t.equal(err.message, 'No handler for the requested pattern.');
@@ -373,8 +373,8 @@ test('requeset channel with an error in a handler', function (t) {
 	});
 	var callback = sinon.spy();
 
-	lets.requestChannel.registerHandler({channel: 'request', event: 6}, handler);
-	lets.requestChannel.request({channel: 'request', event: 6}, {})
+	lets.req.reply({channel: 'request', event: 6}, handler);
+	lets.req.request({channel: 'request', event: 6}, {})
 		.then(callback)
 		.catch(shared.TestError, function (e) {
 			t.equal(e, err, 'error');
