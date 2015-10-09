@@ -97,7 +97,7 @@ exports.newChannelPrototype = function () {
 	return self;
 };
 
-exports.newSpamChannel = function () {
+exports.newBroadcastChannel = function () {
 	var self = Object.create(exports.newChannelPrototype());
 
 	self.broadcast = function (pattern, payload) {

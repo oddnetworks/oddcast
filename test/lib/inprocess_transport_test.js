@@ -10,8 +10,8 @@ var inprocessTransport = require('../../lib/inprocess_transport');
 var lets = Object.create(null);
 
 test('before all', function (t) {
-	lets.spamChannel = oddcast.newSpamChannel();
-	lets.spamChannel.use({channel: 'spam'}, inprocessTransport);
+	lets.broadcastChannel = oddcast.newBroadcastChannel();
+	lets.broadcastChannel.use({channel: 'broadcast'}, inprocessTransport);
 	lets.commandChannel = oddcast.newCommandChannel();
 	lets.commandChannel.use({channel: 'command'}, inprocessTransport);
 	lets.requestChannel = oddcast.newRequestChannel();
@@ -20,7 +20,7 @@ test('before all', function (t) {
 	t.end();
 });
 
-test('spam channel with handler', function (t) {
+test('broadcast channel with handler', function (t) {
 	t.plan(5);
 	var payload = {};
 	var async = false;
@@ -31,12 +31,12 @@ test('spam channel with handler', function (t) {
 		t.ok(async, 'ran async');
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 1}, handler)
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 1}, handler)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.spamChannel.broadcast({channel: 'spam', event: 1}, payload)
+	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 1}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -44,7 +44,7 @@ test('spam channel with handler', function (t) {
 	async = true;
 });
 
-test('spam channel with many handlers', function (t) {
+test('broadcast channel with many handlers', function (t) {
 	t.plan(7);
 	var payload = {};
 
@@ -58,28 +58,28 @@ test('spam channel with many handlers', function (t) {
 		t.ok(handler2.calledWithExactly(payload));
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 2}, handler1)
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 2}, handler1)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset 1');
 		});
-	lets.spamChannel.observe({channel: 'spam', event: 2}, handler2)
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 2}, handler2)
 		.then(function (isset) {
 			t.equal(isset, true, 'isset 2');
 		});
 
-	lets.spamChannel.broadcast({channel: 'spam', event: 2}, payload)
+	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 2}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
 });
 
-test('spam channel called without handler', function (t) {
+test('broadcast channel called without handler', function (t) {
 	t.plan(2);
 	var handler = sinon.spy();
 
-	lets.spamChannel.observe({channel: 'spam', event: 'foo'}, handler);
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 'foo'}, handler);
 
-	lets.spamChannel.broadcast({channel: 'spam', event: 3}, {})
+	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 3}, {})
 		.then(function (success) {
 			t.equal(success, false, 'success');
 		});
@@ -89,19 +89,19 @@ test('spam channel called without handler', function (t) {
 	}, 20);
 });
 
-test('spam channel add and remove handler', function (t) {
+test('broadcast channel add and remove handler', function (t) {
 	t.plan(4);
 	var handler = sinon.spy();
 
-	lets.spamChannel.observe({channel: 'spam', event: 4}, handler);
-	lets.spamChannel.broadcast({channel: 'spam', event: 4}, {});
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 4}, handler);
+	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 4}, {});
 
 	setTimeout(function () {
 		t.equal(handler.callCount, 1, 'first call count');
-		lets.spamChannel.removeObserver({channel: 'spam', event: 4}, handler)
+		lets.broadcastChannel.removeObserver({channel: 'broadcast', event: 4}, handler)
 			.then(function (removed) {
 				t.equal(removed, true, 'removed');
-				lets.spamChannel.broadcast({channel: 'spam', event: 4}, {})
+				lets.broadcastChannel.broadcast({channel: 'broadcast', event: 4}, {})
 					.then(function (success) {
 						t.equal(success, false, 'success');
 					});
@@ -113,7 +113,7 @@ test('spam channel add and remove handler', function (t) {
 	}, 20);
 });
 
-test('spam channel with an error in a handler', function (t) {
+test('broadcast channel with an error in a handler', function (t) {
 	t.plan(2);
 
 	var err = new shared.TestError('observer handler error');
@@ -121,14 +121,14 @@ test('spam channel with an error in a handler', function (t) {
 		throw err;
 	});
 
-	lets.spamChannel.observe({channel: 'spam', event: 5}, handler);
+	lets.broadcastChannel.observe({channel: 'broadcast', event: 5}, handler);
 
-	lets.spamChannel.broadcast({channel: 'spam', event: 5}, {})
+	lets.broadcastChannel.broadcast({channel: 'broadcast', event: 5}, {})
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
 
-	lets.spamChannel.on('error', function (e) {
+	lets.broadcastChannel.on('error', function (e) {
 		t.equal(e, err, 'error');
 	});
 });
