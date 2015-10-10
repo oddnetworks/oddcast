@@ -5,6 +5,8 @@ var patrun = require('patrun');
 
 exports.errors = require('./lib/errors');
 
+exports.inprocessTransport = require('./lib/inprocess_transport');
+
 exports.channelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);

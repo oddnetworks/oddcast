@@ -5,12 +5,11 @@ var sinon = require('sinon');
 
 var shared = require('../shared');
 var oddcast = require('../../');
-var inprocessTransport = require('../../lib/inprocess_transport');
 
 var lets = Object.create(null);
 
 test('before all', function (t) {
-	var transport = inprocessTransport();
+	var transport = oddcast.inprocessTransport();
 
 	lets.events = oddcast.eventChannel();
 	lets.events.use({role: 'broadcastTest'}, transport);
