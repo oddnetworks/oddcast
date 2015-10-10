@@ -12,10 +12,8 @@ exports.channelPrototype = function () {
 	var singleHandlerMatchers = Object.create(null);
 	var multiHandlerMatchers = Object.create(null);
 
-	self.use = function (pattern, transportFactory, options) {
-		options = options || Object.create(null);
-		options.api = self;
-		var transport = transportFactory(options);
+	self.use = function (pattern, transportFactory) {
+		var transport = transportFactory(self);
 		transportMatcher.add(pattern, transport);
 	};
 

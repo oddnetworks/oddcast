@@ -10,12 +10,17 @@ var inprocessTransport = require('../../lib/inprocess_transport');
 var lets = Object.create(null);
 
 test('before all', function (t) {
+	var transport = inprocessTransport();
+
 	lets.events = oddcast.eventChannel();
-	lets.events.use({role: 'broadcastTest'}, inprocessTransport);
+	lets.events.use({role: 'broadcastTest'}, transport);
+
 	lets.commands = oddcast.commandChannel();
-	lets.commands.use({role: 'commandTest'}, inprocessTransport);
+	lets.commands.use({role: 'commandTest'}, transport);
+
 	lets.req = oddcast.requestChannel();
-	lets.req.use({role: 'requestTest'}, inprocessTransport);
+	lets.req.use({role: 'requestTest'}, transport);
+
 	Object.freeze(lets);
 	t.end();
 });
