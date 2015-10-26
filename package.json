@@ -6,7 +6,7 @@
   "main"        : "./index.js",
   "scripts"     : {
     "lint": "xo",
-    "test": "tape 'test/**/*_test.js' | faucet"
+    "test": "xo && tape 'test/**/*_test.js' | faucet"
   },
   "repository": {
     "type" : "git",
