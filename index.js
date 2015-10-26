@@ -106,6 +106,9 @@ exports.eventChannel = function () {
 	};
 
 	self.observe = function (pattern, observer) {
+		if (typeof observer !== 'function') {
+			throw new Error('observe() expects a function as the second argument.');
+		}
 		var transport = self.findTransport(pattern);
 		return transport.observe(pattern, observer);
 	};
@@ -127,6 +130,9 @@ exports.commandChannel = function () {
 	};
 
 	self.receive = function (pattern, handler) {
+		if (typeof handler !== 'function') {
+			throw new Error('receive() expects a function as the second argument.');
+		}
 		var transport = self.findTransport(pattern);
 		return transport.addHandler(pattern, handler);
 	};
@@ -148,6 +154,9 @@ exports.requestChannel = function () {
 	};
 
 	self.reply = function (pattern, handler) {
+		if (typeof handler !== 'function') {
+			throw new Error('reply() expects a function as the second argument.');
+		}
 		var transport = self.findTransport(pattern);
 		return transport.registerHandler(pattern, handler);
 	};
