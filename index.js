@@ -176,8 +176,7 @@ exports.createSingleMatcher = function () {
 exports.createMultiMatcher = function () {
 	return patrun(function (pattern, fn) {
 		var api = Object.create(null);
-		var exactMatches = true;
-		var items = this.find(pattern, exactMatches) || [];
+		var items = this.find(pattern, true) || [];
 		items.push(fn);
 
 		api.find = function () {
