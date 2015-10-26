@@ -100,9 +100,9 @@ exports.channelPrototype = function () {
 exports.eventChannel = function () {
 	var self = Object.create(exports.channelPrototype());
 
-	self.broadcast = function (pattern) {
+	self.broadcast = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
-		return transport.broadcast(pattern);
+		return transport.broadcast(pattern, payload);
 	};
 
 	self.observe = function (pattern, observer) {
@@ -121,9 +121,9 @@ exports.eventChannel = function () {
 exports.commandChannel = function () {
 	var self = Object.create(exports.channelPrototype());
 
-	self.send = function (pattern) {
+	self.send = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
-		return transport.send(pattern);
+		return transport.send(pattern, payload);
 	};
 
 	self.receive = function (pattern, handler) {
@@ -142,9 +142,9 @@ exports.commandChannel = function () {
 exports.requestChannel = function () {
 	var self = Object.create(exports.channelPrototype());
 
-	self.request = function (pattern) {
+	self.request = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
-		return transport.request(pattern);
+		return transport.request(pattern, payload);
 	};
 
 	self.reply = function (pattern, handler) {

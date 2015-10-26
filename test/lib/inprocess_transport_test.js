@@ -27,9 +27,10 @@ test('before all', function (t) {
 test('broadcast channel with handler', function (t) {
 	t.plan(4);
 	var async = false;
+	var payload = {};
 
 	var handler = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'arg.param');
+		t.equal(arg, payload, 'args');
 		t.ok(async, 'ran async');
 	});
 
@@ -38,7 +39,7 @@ test('broadcast channel with handler', function (t) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.events.broadcast({role: 'broadcastTest', test: 1, param: 'foo'})
+	lets.events.broadcast({role: 'broadcastTest', test: 1}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -48,13 +49,14 @@ test('broadcast channel with handler', function (t) {
 
 test('broadcast channel with many handlers', function (t) {
 	t.plan(5);
+	var payload = {};
 
 	var handler1 = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'arg.param');
+		t.equal(arg, payload, 'args');
 	});
 
 	var handler2 = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'arg.param');
+		t.equal(arg, payload, 'args');
 	});
 
 	lets.events.observe({role: 'broadcastTest', test: 2}, handler1)
@@ -66,7 +68,7 @@ test('broadcast channel with many handlers', function (t) {
 			t.equal(isset, true, 'isset 2');
 		});
 
-	lets.events.broadcast({role: 'broadcastTest', test: 2, param: 'foo'})
+	lets.events.broadcast({role: 'broadcastTest', test: 2}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -122,9 +124,10 @@ test('broadcast channel with an error in a handler', function (t) {
 test('command channel with handler', function (t) {
 	t.plan(4);
 	var async = false;
+	var payload = {};
 
 	var handler = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'arg.param');
+		t.equal(arg, payload, 'arg');
 		t.ok(async, 'ran async');
 	});
 
@@ -133,7 +136,7 @@ test('command channel with handler', function (t) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.commands.send({role: 'commandTest', test: 1, param: 'foo'})
+	lets.commands.send({role: 'commandTest', test: 1}, payload)
 		.then(function (success) {
 			t.equal(success, true, 'success');
 		});
@@ -143,18 +146,19 @@ test('command channel with handler', function (t) {
 
 test('command channel with many handlers', function (t) {
 	t.plan(4);
+	var payload = {};
 	var handler1;
 	var handler2;
 
 	handler1 = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'got payload');
+		t.equal(arg, payload, 'got payload');
 		setTimeout(function () {
 			t.equal(handler2.callCount, 0, 'count handler2');
 		}, 20);
 	});
 
 	handler2 = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'got payload');
+		t.equal(arg, payload, 'got payload');
 		setTimeout(function () {
 			t.equal(handler1.callCount, 0, 'count handler1');
 		}, 20);
@@ -170,7 +174,7 @@ test('command channel with many handlers', function (t) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.commands.send({role: 'commandTest', test: 2, param: 'foo'});
+	lets.commands.send({role: 'commandTest', test: 2}, payload);
 });
 
 test('command channel called without handler', function (t) {
@@ -237,11 +241,12 @@ test('command channel with an error in a handler', function (t) {
 
 test('request channel with handler', function (t) {
 	t.plan(4);
+	var payload = {};
 	var response = {response: true};
 	var async = false;
 
 	var handler = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'payload');
+		t.equal(arg, payload, 'payload');
 		t.ok(async, 'ran async');
 		return response;
 	});
@@ -251,7 +256,7 @@ test('request channel with handler', function (t) {
 			t.equal(isset, true, 'isset');
 		});
 
-	lets.req.request({role: 'requestTest', test: 1, param: 'foo'})
+	lets.req.request({role: 'requestTest', test: 1}, payload)
 		.then(function (res) {
 			t.equal(res, response, 'response');
 		});
@@ -261,11 +266,12 @@ test('request channel with handler', function (t) {
 
 test('request channel with many handlers', function (t) {
 	t.plan(4);
+	var payload = {};
 	var handler;
 	var response = {};
 
 	handler = sinon.spy(function (arg) {
-		t.equal(arg.param, 'foo', 'got payload');
+		t.equal(arg, payload, 'payload');
 		return response;
 	});
 
@@ -279,7 +285,7 @@ test('request channel with many handlers', function (t) {
 			t.equal(isset, false, 'not isset');
 		});
 
-	lets.req.request({role: 'requestTest', test: 2, param: 'foo'})
+	lets.req.request({role: 'requestTest', test: 2}, payload)
 		.then(function (res) {
 			t.equal(res, response, 'response');
 		});
