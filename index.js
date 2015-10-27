@@ -181,7 +181,7 @@ exports.createMultiMatcher = function () {
 		var items = this.find(pattern, exact) || [];
 		items.push(fn);
 
-		api.find = function (pat, data) {
+		api.find = function (pat) {
 			if (Object.keys(pat).length > keyLength) {
 				return null;
 			}
