@@ -170,15 +170,14 @@ exports.requestChannel = function () {
 };
 
 exports.createSingleMatcher = function () {
-	return patrun();
+	return patrun({gex: true});
 };
 
 exports.createMultiMatcher = function () {
 	return patrun(function (pattern, fn) {
 		var api = Object.create(null);
 		var keyLength = Object.keys(pattern).length;
-		var exact = true;
-		var items = this.find(pattern, exact) || [];
+		var items = this.find(pattern) || [];
 		items.push(fn);
 
 		api.find = function (pat) {

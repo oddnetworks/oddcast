@@ -18,7 +18,7 @@ test('before all', function (t) {
 	lets.multiMatcher.add({foo: 'bar'}, lets.a);
 	lets.multiMatcher.add({foo: 'bar'}, lets.x);
 	lets.multiMatcher.add({baz: 'zee'}, lets.y);
-	lets.multiMatcher.add({foo: 'bar', baz: 'zee'}, lets.z);
+	lets.multiMatcher.add({foo: 'bar', comp: '*', baz: 'zee'}, lets.z);
 	t.end();
 });
 
@@ -36,7 +36,7 @@ test('a more specific pattern does not overwrite', function (t) {
 });
 
 test('a more specific pattern is ... more specific', function (t) {
-	var res = lets.multiMatcher.find({foo: 'bar', baz: 'zee'});
+	var res = lets.multiMatcher.find({baz: 'zee', comp: 'xxx', foo: 'bar'});
 	t.equal(res, lets.z, 'result');
 	t.end();
 });
