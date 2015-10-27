@@ -191,4 +191,3 @@ exports.createMultiMatcher = function () {
 		return api;
 	});
 };
-
