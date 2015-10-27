@@ -176,10 +176,15 @@ exports.createSingleMatcher = function () {
 exports.createMultiMatcher = function () {
 	return patrun(function (pattern, fn) {
 		var api = Object.create(null);
-		var items = this.find(pattern, true) || [];
+		var keyLength = Object.keys(pattern).length;
+		var exact = true;
+		var items = this.find(pattern, exact) || [];
 		items.push(fn);
 
-		api.find = function () {
+		api.find = function (pat, data) {
+			if (Object.keys(pat).length > keyLength) {
+				return null;
+			}
 			return items.length > 0 ? items : null;
 		};
 
