@@ -1,7 +1,6 @@
 'use strict';
 
 var EventEmitter = require('events');
-var patrun = require('patrun');
 
 exports.errors = require('./lib/errors');
 
@@ -157,33 +156,6 @@ exports.requestChannel = function () {
 	};
 
 	return self;
-};
-
-exports.createSingleMatcher = function () {
-	return patrun({gex: true});
-};
-
-exports.createMultiMatcher = function () {
-	return patrun(function (pattern, fn) {
-		var api = Object.create(null);
-		var keyLength = Object.keys(pattern).length;
-		var items = this.find(pattern) || [];
-		items.push(fn);
-
-		api.find = function (pat) {
-			if (Object.keys(pat).length > keyLength) {
-				return null;
-			}
-			return items.length > 0 ? items : null;
-		};
-
-		api.remove = function () {
-			items.pop();
-			return items.length === 0;
-		};
-
-		return api;
-	});
 };
 
 function PatternMatcher() {
