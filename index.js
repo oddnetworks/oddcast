@@ -9,12 +9,13 @@ exports.inprocessTransport = require('./lib/inprocess_transport');
 exports.channelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);
-	var transportMatcher = exports.createSingleMatcher();
+	var transportMatcher = exports.PatternMatcher.create();
 	var singleHandlerMatchers = Object.create(null);
 	var multiHandlerMatchers = Object.create(null);
 
 	self.use = function (pattern, transportFactory) {
 		var transport = transportFactory(self);
+		transportMatcher.remove(pattern);
 		transportMatcher.add(pattern, transport);
 	};
 
@@ -76,7 +77,7 @@ exports.channelPrototype = function () {
 	};
 
 	self.findTransport = function (pattern) {
-		return transportMatcher.find(pattern);
+		return transportMatcher.find(pattern)[0];
 	};
 
 	self.notifyError = function (err) {
