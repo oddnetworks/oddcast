@@ -178,7 +178,7 @@ PatternMatcher.prototype.find = function (objectPattern) {
 	var index = this.index;
 
 	return Object.keys(index).reduce(function (matches, pattern) {
-		if (stringPattern.indexOf(pattern)) {
+		if (stringPattern.indexOf(pattern) > -1) {
 			matches = matches.concat(index[pattern]);
 		}
 		return matches;
@@ -195,12 +195,15 @@ PatternMatcher.prototype.remove = function (objectPattern, object) {
 	var matches;
 	var i;
 
-	if (typeof object === 'undefined' && this.index.hasOwnProperty(stringPattern)) {
-		delete this.index[stringPattern];
-		return true;
+	if (typeof object === 'undefined') {
+		if (this.index[stringPattern]) {
+			delete this.index[stringPattern];
+			return true;
+		}
+		return false;
 	}
 
-	matches = this.find(objectPattern);
+	matches = this.index[stringPattern];
 	i = matches.indexOf(object);
 	if (i >= 0) {
 		matches.splice(i, 1);
