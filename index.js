@@ -1,7 +1,6 @@
 'use strict';
 
 var EventEmitter = require('events');
-var patrun = require('patrun');
 
 exports.errors = require('./lib/errors');
 
@@ -10,12 +9,13 @@ exports.inprocessTransport = require('./lib/inprocess_transport');
 exports.channelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);
-	var transportMatcher = exports.createSingleMatcher();
+	var transportMatcher = exports.PatternMatcher.create();
 	var singleHandlerMatchers = Object.create(null);
 	var multiHandlerMatchers = Object.create(null);
 
 	self.use = function (pattern, transportFactory) {
 		var transport = transportFactory(self);
+		transportMatcher.remove(pattern);
 		transportMatcher.add(pattern, transport);
 	};
 
@@ -24,15 +24,15 @@ exports.channelPrototype = function () {
 		if (!matcher) {
 			return null;
 		}
-		return matcher.find(pattern);
+		return matcher.find(pattern)[0];
 	};
 
 	self.addSingle = function (key, pattern, fn) {
 		var matcher = singleHandlerMatchers[key];
 		if (!matcher) {
-			matcher = singleHandlerMatchers[key] = exports.createSingleMatcher();
+			matcher = singleHandlerMatchers[key] = exports.PatternMatcher.create();
 		}
-		if (matcher.find(pattern)) {
+		if (matcher.exists(pattern)) {
 			return false;
 		}
 		matcher.add(pattern, fn);
@@ -44,7 +44,7 @@ exports.channelPrototype = function () {
 		if (!matcher) {
 			return false;
 		}
-		if (matcher.find(pattern)) {
+		if (matcher.exists(pattern)) {
 			matcher.remove(pattern);
 			return true;
 		}
@@ -56,38 +56,28 @@ exports.channelPrototype = function () {
 		if (!matcher) {
 			return [];
 		}
-		return matcher.find(pattern) || [];
+		return matcher.find(pattern);
 	};
 
 	self.addMulti = function (key, pattern, fn) {
 		var matcher = multiHandlerMatchers[key];
 		if (!matcher) {
-			matcher = multiHandlerMatchers[key] = exports.createMultiMatcher();
+			matcher = multiHandlerMatchers[key] = exports.PatternMatcher.create();
 		}
 		matcher.add(pattern, fn);
 		return true;
 	};
 
 	self.removeMulti = function (key, pattern, fn) {
-		var i;
 		var matcher = multiHandlerMatchers[key];
 		if (!matcher) {
 			return false;
 		}
-		var handlers = matcher.find(pattern);
-		if (!handlers) {
-			return false;
-		}
-		i = handlers.indexOf(fn);
-		if (i < 0) {
-			return false;
-		}
-		handlers.splice(i, 1);
-		return true;
+		return matcher.remove(pattern, fn);
 	};
 
 	self.findTransport = function (pattern) {
-		return transportMatcher.find(pattern);
+		return transportMatcher.find(pattern)[0];
 	};
 
 	self.notifyError = function (err) {
@@ -169,29 +159,87 @@ exports.requestChannel = function () {
 	return self;
 };
 
-exports.createSingleMatcher = function () {
-	return patrun({gex: true});
+function PatternMatcher() {
+	this.index = Object.create(null);
+}
+
+exports.PatternMatcher = PatternMatcher;
+
+PatternMatcher.prototype.add = function (objectPattern, object) {
+	var stringPattern = this.patternToString(objectPattern);
+	var list = this.index[stringPattern];
+	if (!list) {
+		list = this.index[stringPattern] = [];
+	}
+	list.push(object);
 };
 
-exports.createMultiMatcher = function () {
-	return patrun(function (pattern, fn) {
-		var api = Object.create(null);
-		var keyLength = Object.keys(pattern).length;
-		var items = this.find(pattern) || [];
-		items.push(fn);
+PatternMatcher.prototype.find = function (objectPattern) {
+	var stringPattern = this.patternToString(objectPattern);
+	var index = this.index;
 
-		api.find = function (pat) {
-			if (Object.keys(pat).length > keyLength) {
-				return null;
-			}
-			return items.length > 0 ? items : null;
-		};
+	return Object.keys(index).reduce(function (matches, pattern) {
+		if (stringPattern.indexOf(pattern) > -1) {
+			matches = matches.concat(index[pattern]);
+		}
+		return matches;
+	}, []);
+};
 
-		api.remove = function () {
-			items.pop();
-			return items.length === 0;
-		};
+PatternMatcher.prototype.exists = function (objectPattern) {
+	var stringPattern = this.patternToString(objectPattern);
+	return Boolean(this.index[stringPattern]);
+};
 
-		return api;
-	});
+PatternMatcher.prototype.remove = function (objectPattern, object) {
+	var stringPattern = this.patternToString(objectPattern);
+	var matches;
+	var i;
+
+	if (typeof object === 'undefined') {
+		if (this.index[stringPattern]) {
+			delete this.index[stringPattern];
+			return true;
+		}
+		return false;
+	}
+
+	matches = this.index[stringPattern];
+	i = matches.indexOf(object);
+	if (i >= 0) {
+		matches.splice(i, 1);
+		return true;
+	}
+
+	return false;
+};
+
+PatternMatcher.prototype.patternToString = function (objectPattern) {
+	var self = this;
+	if (objectPattern && typeof objectPattern === 'object') {
+		return Object.keys(objectPattern).sort().map(function (key) {
+			return key + ':' + self.objectToString(objectPattern[key]);
+		}).join();
+	}
+	return this.objectToString(objectPattern);
+};
+
+PatternMatcher.prototype.objectToString = function (object) {
+	if (typeof object === 'string') {
+		return object;
+	}
+	if (typeof object === 'boolean' || (typeof object === 'number' && !isNaN(object))) {
+		return object.toString();
+	}
+	if (object && (typeof object === 'object' || typeof object === 'function')) {
+		return Object.prototype.call(object);
+	}
+	if (object === null || typeof object === 'undefined' || isNaN(object)) {
+		return 'null';
+	}
+	return Object.prototype.toString.call(object);
+};
+
+PatternMatcher.create = function () {
+	return new PatternMatcher();
 };
