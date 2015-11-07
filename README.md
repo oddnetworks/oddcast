@@ -4,15 +4,15 @@ An event broadcast and queue API for Node.js.
 
 Summary
 -------
-A small component of a system will fit into your brain better than the entire system. Software is easier to build and maintain when we only need to understand one single component at a time.
+A small component of a system will fit into your brain better than the entire system. This is a fact.
 
-We've been using model-view-controller to do this for almost 30 years, but the thing is, MVC does not really accomplish the componentization goal. Neither does Object Oriented programming for that matter.
+We've been using model-view-controller to "componentize" our systems for almost 30 years. The thing is, MVC does not really accomplish the componentization goal. Neither does Object Oriented programming for that matter.
 
-Instead, we subscribe to the idea of command/query responsibility segregation ([CQRS](http://martinfowler.com/bliki/CQRS.html)). In CQRS commands are operations that usually write our data and queries are operations that read our data. The logic for commands and queries should never mix.
+Instead of MVC, consider command/query responsibility segregation ([CQRS](http://martinfowler.com/bliki/CQRS.html)). In CQRS commands are operations which write our data while queries are operations which read our data. Most importantly, the logic for commands and queries should never mix.
 
-When a command is sent into the system, there will be a single component that will understand how the data should be structured and will persist it. This is not any different than the models in MVC. But, once your command component has written the data, it will then broadcast successful create, update, and delete events to the rest of the system, without caring about who might be listening.Separate view components then listen for those data changes broadcased by command components and take appropriate action to maintain the view.
+When a command is sent into the system, there will be a single component that will understand how the data should be structured and will persist it. This is not any different than the models in MVC. But, once your command component has written the data, it will then broadcast successful create, update, and delete events to the rest of the system, without caring about who might be listening. Separate view components then listen for those data changes broadcasted by the command components and take appropriate action to maintain only the view which it is responsible for.
 
-The whole point of command query responsibility segregation is the "segregation". Commands are kind of like models that only write, while views are not really models at all, but a combination of indexes and queries. So your read components are separated from your write components making it easier to reason about the responsiblities contained in each.
+The whole point of command query responsibility segregation is the "segregation". Commands are kind of like models that only write. Views are not really models at all, but a combination of indexes and queries. So your read components are separated from your write components making it easier to reason about the responsibilities contained in each.
 
 To make all this work, you need an asynchronous communication mechanism to send messages between components in your system. This communication is where Oddcast comes in.
 
@@ -54,7 +54,7 @@ events.broadcast({
 ```
 
 ### Command Channel
-A Command Channel is used for directed messages, with the expectation that the receiving roleonent will take a specified action. The underlying transport under a command channel will usually be a message queue.
+A Command Channel is used for directed messages, with the expectation that the receiving component will take a specified action. The underlying transport under a command channel will usually be a message queue.
 ```JS
 var oddcast = require('oddcast');
 var transport = require('my-transport');
