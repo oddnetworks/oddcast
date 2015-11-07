@@ -18,9 +18,9 @@
   },
   "devDependencies": {
     "faucet" : "0.0.1",
-    "sinon"  : "1.17.1",
-    "tape"   : "4.2.1",
-    "xo"     : "0.9.0"
+    "sinon"  : "1.17.2",
+    "tape"   : "4.2.2",
+    "xo"     : "0.10.1"
   },
   "bugs": {"url": "https://github.com/oddnetworks/oddcast/issues"},
   "license": "MIT"
