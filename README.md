@@ -2,6 +2,10 @@ Oddcast
 =======
 An event broadcast and queue API for Node.js.
 
+[![NPM](https://nodei.co/npm/oddcast.png?downloads=true)](https://nodei.co/npm/oddcast/)
+
+[![npm version](https://badge.fury.io/js/oddcast.svg)](https://badge.fury.io/js/oddcast)
+
 Summary
 -------
 A small component of a system will fit into your brain better than the entire system. This is a fact.
