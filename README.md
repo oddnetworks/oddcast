@@ -8,7 +8,7 @@ An event broadcast and queue API for Node.js.
 
 Summary
 -------
-A small component of a system will fit into your brain better than the entire system. This is a fact.
+A small component of a system will fit into your brain better than the entire system. That is a statement of fact.
 
 We've been using model-view-controller to "componentize" our systems for almost 30 years. The thing is, MVC does not really accomplish the componentization goal. Neither does Object Oriented programming for that matter.
 
@@ -25,7 +25,7 @@ Quick Start
 Oddcast supports 3 kinds of messages: Broadcast, Command, and Request. To use them you create a channel for the one you want, and give it a transport to use under the covers.
 
 ### Broadcast Channel
-A Spam Channel broadcasts events throughout the system to anyone who might be listening.
+A Broadcast Channel broadcasts events throughout the system to anyone who might be listening. This is the typical event system we've seen in JavaScript applications for many years.
 ```JS
 var oddcast = require('oddcast');
 var transport = require('my-transport');
