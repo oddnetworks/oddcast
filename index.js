@@ -87,7 +87,7 @@ exports.eventChannel = function () {
 
 	self.remove = function (pattern, observer) {
 		var transport = self.findTransport(pattern);
-		return transport.removeObserver(pattern, observer);
+		return transport.remove(pattern, observer);
 	};
 
 	return self;
@@ -111,7 +111,7 @@ exports.commandChannel = function () {
 
 	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
-		return transport.removeHandler(pattern, handler);
+		return transport.remove(pattern, handler);
 	};
 
 	return self;
@@ -135,7 +135,7 @@ exports.requestChannel = function () {
 
 	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
-		return transport.unregisterHandler(pattern, handler);
+		return transport.remove(pattern, handler);
 	};
 
 	return self;
