@@ -10,80 +10,62 @@ exports.channelPrototype = function () {
 	var self = Object.create(EventEmitter.prototype);
 	EventEmitter.init.call(self);
 	var transportMatcher = exports.PatternMatcher.create();
-	var singleHandlerMatchers = Object.create(null);
-	var multiHandlerMatchers = Object.create(null);
 
 	self.use = function (pattern, transportFactory) {
-		var transport = transportFactory(self);
+		var matcher = exports.createChannelMatcher();
+		matcher.notifyError = function (err) {
+			self.emit('error', err);
+		};
+		var transport = transportFactory(matcher);
 		transportMatcher.remove(pattern);
 		transportMatcher.add(pattern, transport);
-	};
-
-	self.findSingle = function (key, pattern) {
-		var matcher = singleHandlerMatchers[key];
-		if (!matcher) {
-			return null;
-		}
-		return matcher.find(pattern)[0];
-	};
-
-	self.addSingle = function (key, pattern, fn) {
-		var matcher = singleHandlerMatchers[key];
-		if (!matcher) {
-			matcher = singleHandlerMatchers[key] = exports.PatternMatcher.create();
-		}
-		if (matcher.exists(pattern)) {
-			return false;
-		}
-		matcher.add(pattern, fn);
-		return true;
-	};
-
-	self.removeSingle = function (key, pattern) {
-		var matcher = singleHandlerMatchers[key];
-		if (!matcher) {
-			return false;
-		}
-		if (matcher.exists(pattern)) {
-			matcher.remove(pattern);
-			return true;
-		}
-		return false;
-	};
-
-	self.findMulti = function (key, pattern) {
-		var matcher = multiHandlerMatchers[key];
-		if (!matcher) {
-			return [];
-		}
-		return matcher.find(pattern);
-	};
-
-	self.addMulti = function (key, pattern, fn) {
-		var matcher = multiHandlerMatchers[key];
-		if (!matcher) {
-			matcher = multiHandlerMatchers[key] = exports.PatternMatcher.create();
-		}
-		matcher.add(pattern, fn);
-		return true;
-	};
-
-	self.removeMulti = function (key, pattern, fn) {
-		var matcher = multiHandlerMatchers[key];
-		if (!matcher) {
-			return false;
-		}
-		return matcher.remove(pattern, fn);
 	};
 
 	self.findTransport = function (pattern) {
 		return transportMatcher.find(pattern)[0];
 	};
 
-	self.notifyError = function (err) {
-		self.emit('error', err);
-	};
+	return self;
+};
 
+exports.ChannelMatcher = {
+	findSingle: function (pattern) {
+		return this.matcher.find(pattern)[0];
+	},
+
+	addSingle: function (pattern, fn) {
+		if (this.matcher.exists(pattern)) {
+			return false;
+		}
+		this.matcher.add(pattern, fn);
+		return true;
+	},
+
+	removeSingle: function (pattern) {
+		if (this.matcher.exists(pattern)) {
+			this.matcher.remove(pattern);
+			return true;
+		}
+		return false;
+	},
+
+	findMulti: function (pattern) {
+		return this.matcher.find(pattern);
+	},
+
+	addMulti: function (pattern, fn) {
+		this.matcher.add(pattern, fn);
+		return true;
+	},
+
+	removeMulti: function (pattern, fn) {
+		return this.matcher.remove(pattern, fn);
+	}
+};
+
+exports.createChannelMatcher = function () {
+	var self = Object.create(exports.ChannelMatcher);
+	self.matcher = exports.PatternMatcher.create();
 	return self;
 };
 
