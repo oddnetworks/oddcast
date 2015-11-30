@@ -145,24 +145,21 @@ test('command channel with handler', function (t) {
 });
 
 test('command channel with many handlers', function (t) {
-	t.plan(4);
+	t.plan(5);
 	var payload = {};
 	var handler1;
 	var handler2;
 
 	handler1 = sinon.spy(function (arg) {
 		t.equal(arg, payload, 'got payload');
-		setTimeout(function () {
-			t.equal(handler2.callCount, 0, 'count handler2');
-		}, 20);
 	});
 
-	handler2 = sinon.spy(function (arg) {
-		t.equal(arg, payload, 'got payload');
-		setTimeout(function () {
-			t.equal(handler1.callCount, 0, 'count handler1');
-		}, 20);
-	});
+	handler2 = sinon.spy();
+
+	setTimeout(function () {
+		t.equal(handler1.callCount, 1, 'count handler1');
+		t.equal(handler2.callCount, 0, 'count handler2');
+	}, 12);
 
 	lets.commands.receive({role: 'commandTest', test: 2}, handler1)
 		.then(function (isset) {
@@ -171,7 +168,7 @@ test('command channel with many handlers', function (t) {
 
 	lets.commands.receive({role: 'commandTest', test: 2}, handler2)
 		.then(function (isset) {
-			t.equal(isset, true, 'isset');
+			t.equal(isset, false, 'isset');
 		});
 
 	lets.commands.send({role: 'commandTest', test: 2}, payload);
