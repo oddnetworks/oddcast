@@ -13,10 +13,12 @@ exports.channelPrototype = function () {
 
 	self.use = function (pattern, transportFactory) {
 		var matcher = exports.createChannelMatcher();
-		matcher.notifyError = function (err) {
-			self.emit('error', err);
-		};
 		var transport = transportFactory(matcher);
+		if (typeof transport.on === 'function') {
+			transport.on('error', function (err) {
+				self.emit('error', err);
+			});
+		}
 		transportMatcher.remove(pattern);
 		transportMatcher.add(pattern, transport);
 	};
