@@ -1,9 +1,9 @@
 'use strict';
 
 var EventEmitter = require('events');
+var errors = require('./lib/errors');
 
-exports.errors = require('./lib/errors');
-
+exports.errors = errors;
 exports.inprocessTransport = require('./lib/inprocess_transport');
 
 exports.channelPrototype = function () {
@@ -76,6 +76,9 @@ exports.eventChannel = function () {
 
 	self.broadcast = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.broadcast(pattern, payload);
 	};
 
@@ -84,11 +87,17 @@ exports.eventChannel = function () {
 			throw new Error('observe() expects a function as the second argument.');
 		}
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.observe(pattern, observer);
 	};
 
 	self.remove = function (pattern, observer) {
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.remove(pattern, observer);
 	};
 
@@ -108,11 +117,17 @@ exports.commandChannel = function () {
 			throw new Error('receive() expects a function as the second argument.');
 		}
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.addHandler(pattern, handler);
 	};
 
 	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.remove(pattern, handler);
 	};
 
@@ -124,6 +139,9 @@ exports.requestChannel = function () {
 
 	self.request = function (pattern, payload) {
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.request(pattern, payload);
 	};
 
@@ -132,11 +150,17 @@ exports.requestChannel = function () {
 			throw new Error('reply() expects a function as the second argument.');
 		}
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.registerHandler(pattern, handler);
 	};
 
 	self.remove = function (pattern, handler) {
 		var transport = self.findTransport(pattern);
+		if (!transport) {
+			throw new errors.NoTransportError(pattern);
+		}
 		return transport.remove(pattern, handler);
 	};
 
