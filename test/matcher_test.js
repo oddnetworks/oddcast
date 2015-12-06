@@ -43,6 +43,15 @@ const oddcast = require('../');
 		t.end();
 	});
 
+	test('anything matches {}', function (t) {
+		var res = matcher.find({});
+		t.ok(res.indexOf(lets.a) >= 0, '0 result');
+		t.ok(res.indexOf(lets.x) >= 0, '1 result');
+		t.ok(res.indexOf(lets.y) >= 0, '2 result');
+		t.ok(res.indexOf(lets.z) >= 0, '3 result');
+		t.end();
+	});
+
 	test('can remove by pattern', function (t) {
 		matcher.remove({foo: 'bar'}, lets.a);
 		var res = matcher.find({foo: 'bar'});

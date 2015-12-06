@@ -187,7 +187,7 @@ PatternMatcher.prototype.find = function (objectPattern) {
 	var index = this.index;
 
 	return Object.keys(index).reduce(function (matches, pattern) {
-		if (stringPattern.indexOf(pattern) > -1) {
+		if (stringPattern === '' || stringPattern.indexOf(pattern) > -1) {
 			matches = matches.concat(index[pattern]);
 		}
 		return matches;
