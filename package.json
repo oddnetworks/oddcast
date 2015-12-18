@@ -1,27 +1,34 @@
 {
-  "name"        : "oddcast",
-  "version"     : "0.4.0",
-  "description" : "An event broadcast and queue API module.",
-  "author"      : "Odd Networks (http://oddnetworks.co)",
-  "main"        : "./index.js",
-  "scripts"     : {
+  "name": "oddcast",
+  "version": "0.4.0",
+  "description": "An event broadcast and queue API module.",
+  "author": "Odd Networks (http://oddnetworks.co)",
+  "main": "./index.js",
+  "scripts": {
     "lint": "xo",
-    "test": "xo && tape 'test/**/*_test.js' | faucet"
+    "test": "xo && tape 'test/**/*_test.js' | faucet",
+    "coverage": "istanbul cover tape test/**/*.js | tap-spec",
+    "coveralls": "npm run coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
-    "type" : "git",
-    "url"  : "https://github.com/oddnetworks/oddcast.git"
+    "type": "git",
+    "url": "https://github.com/oddnetworks/oddcast.git"
   },
   "homepage": "https://github.com/oddnetworks/oddcast/",
   "dependencies": {
-    "bluebird" : "3.0.5"
+    "bluebird": "3.0.5"
   },
   "devDependencies": {
-    "faucet" : "0.0.1",
-    "sinon"  : "1.17.2",
-    "tape"   : "4.2.2",
-    "xo"     : "0.10.1"
+    "coveralls": "^2.11.6",
+    "faucet": "0.0.1",
+    "istanbul": "^0.4.1",
+    "sinon": "1.17.2",
+    "tap-spec": "^4.1.1",
+    "tape": "4.2.2",
+    "xo": "0.10.1"
   },
-  "bugs": {"url": "https://github.com/oddnetworks/oddcast/issues"},
+  "bugs": {
+    "url": "https://github.com/oddnetworks/oddcast/issues"
+  },
   "license": "MIT"
 }

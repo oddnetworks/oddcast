@@ -1,10 +1,13 @@
 Oddcast
 =======
-An event broadcast and queue API for Node.js.
+> An event broadcast and queue API for Node.js.
 
-[![NPM](https://nodei.co/npm/oddcast.png?downloads=true)](https://nodei.co/npm/oddcast/)
+[![NPM][npm-banner]][npm-banner-url]
 
-[![npm version](https://badge.fury.io/js/oddcast.svg)](https://badge.fury.io/js/oddcast)
+[![npm version][npm-badge]][npm-url]
+[![Build Status][travis-badge]][travis-url]
+[![Coverage Status][coveralls-badge]][coveralls-status]
+[![Dependency Status][david-badge]][david-url]
 
 Summary
 -------
@@ -22,11 +25,12 @@ To make all this work, you need an asynchronous communication mechanism to send 
 
 Quick Start
 -----------
-Oddcast supports 3 kinds of messages: Broadcast, Command, and Request. To use them you create a channel for the one you want, and give it a transport to use under the covers.
+Oddcast supports 3 kinds of messages: **Broadcast**, **Command**, and **Request**. To use them you create a channel for the one you want, and give it a transport to use under the covers.
 
 ### Broadcast Channel
 A Broadcast Channel broadcasts events throughout the system to anyone who might be listening. This is the typical event system we've seen in JavaScript applications for many years.
-```JS
+
+```js
 var oddcast = require('oddcast');
 var transport = require('my-transport');
 var events = oddcast.eventChannel();
@@ -59,7 +63,8 @@ events.broadcast({
 
 ### Command Channel
 A Command Channel is used for directed messages, with the expectation that the receiving component will take a specified action. The underlying transport under a command channel will usually be a message queue.
-```JS
+
+```js
 var oddcast = require('oddcast');
 var transport = require('my-transport');
 var commands = oddcast.commandChannel();
@@ -103,7 +108,7 @@ items.forEach(function (item) {
 
 ### Request Channel
 A Request Channel is used when you know who has the data you need, and would like to request it from them.
-```JS
+```js
 var oddcast = require('oddcast');
 var transport = require('my-transport');
 var rchannel = oddcast.requestChannel();
@@ -146,3 +151,14 @@ Copyright and License
 Copyright: (c) 2015 by Odd Networks Inc. (http://oddnetworks.co)
 
 Unless otherwise indicated, all source code is licensed under the MIT license. See MIT-LICENSE for details.
+
+[npm-banner]: https://nodei.co/npm/oddcast.png?downloads=true
+[npm-banner-url]: https://nodei.co/npm/oddcast/
+[npm-badge]: https://badge.fury.io/js/oddcast.svg
+[npm-url]: https://badge.fury.io/js/oddcast
+[travis-badge]: https://api.travis-ci.org/oddnetworks/oddcast.svg
+[travis-url]: https://travis-ci.org/oddnetworks/oddcast
+[coveralls-badge]:https://coveralls.io/repos/oddnetworks/oddcast/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/oddnetworks/oddcast?branch=master
+[david-badge]: https://david-dm.org/oddnetworks/oddcast.svg
+[david-url]: https://david-dm.org/oddnetworks/oddcast
