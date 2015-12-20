@@ -158,8 +158,8 @@ Register a handler function to handle events from the underlying transport match
 
 Handler errors will be emitted by the CommandChannel instance as error events, so make sure your program is handling them.
 
-#### #remove(pattern)
-Remove the receive handler at the given pattern. The pattern needs to be exactly the same as that used in #receive().
+#### #remove(pattern, handler)
+Remove the receive handler at the given pattern. The pattern needs to be exactly the same as that used in #receive(). If a handler is not passed in, then all handlers on the given pattern will be removed.
 
 #### #use(pattern, transport)
 Register a transport to use at the given pattern.
