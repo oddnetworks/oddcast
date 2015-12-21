@@ -22,7 +22,7 @@ const CommandChannel = require('../../lib/command_channel');
 		t.equal(remove, Channel.prototype.remove);
 	});
 
-	test('it has a remove method', function (t) {
+	test('it has a use method', function (t) {
 		t.plan(1);
 		const use = CommandChannel.prototype.use;
 		t.equal(use, Channel.prototype.use);
