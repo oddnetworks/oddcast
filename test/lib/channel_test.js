@@ -197,7 +197,7 @@ StreamTransport.create = function () {
 	});
 })();
 
-(function removeHandlers () {
+(function removeHandlers() {
 	let channel;
 
 	const handler1 = sinon.spy();
