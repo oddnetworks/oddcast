@@ -60,12 +60,7 @@ const oddcast = require('../../lib/oddcast');
 
 	test('EventChannel add and remove handler', function (t) {
 		t.plan(3);
-		const handler = sinon.spy();
-
-		events.observe({role: 'broadcastTest', test: 4}, handler);
-		events.broadcast({role: 'broadcastTest', test: 4, param: 'foo'});
-
-		setTimeout(function () {
+		const handler = sinon.spy(function () {
 			t.equal(handler.callCount, 1, 'first call count');
 			const removed = events.remove({role: 'broadcastTest', test: 4}, handler);
 			t.equal(removed, true, 'removed');
@@ -73,8 +68,11 @@ const oddcast = require('../../lib/oddcast');
 
 			setTimeout(function () {
 				t.equal(handler.callCount, 1, 'last call count');
-			}, 20);
-		}, 20);
+			}, 12);
+		});
+
+		events.observe({role: 'broadcastTest', test: 4}, handler);
+		events.broadcast({role: 'broadcastTest', test: 4});
 	});
 
 	test('EventChannel with an error in a handler', function (t) {
@@ -86,7 +84,6 @@ const oddcast = require('../../lib/oddcast');
 		});
 
 		events.observe({role: 'broadcastTest', test: 5}, handler);
-
 		events.broadcast({role: 'broadcastTest', test: 5});
 
 		events.on('error', function (e) {
@@ -132,7 +129,7 @@ const oddcast = require('../../lib/oddcast');
 		isset = commands.receive({role: 'commandTest', test: 2}, handler1);
 		t.equal(isset, true, 'isset');
 
-		isset = commands.receive({role: 'commandTest', test: 2}, handler2)
+		isset = commands.receive({role: 'commandTest', test: 2}, handler2);
 		t.equal(isset, false, 'isset');
 
 		commands.send({role: 'commandTest', test: 2}, payload);
@@ -171,6 +168,7 @@ const oddcast = require('../../lib/oddcast');
 			commands.send({role: 'commandTest', test: 4});
 
 			setTimeout(function () {
+				commands.removeListener('error', errorHandler);
 				t.equal(handler.callCount, 1, 'count');
 				const err = errorHandler.firstCall.args[0];
 				t.equal(err.message, 'No handler for pattern role:commandTest,test:4');
@@ -187,7 +185,7 @@ const oddcast = require('../../lib/oddcast');
 		});
 
 		function errorHandler(e) {
-			commands.removeListener('error', errorHandler)
+			commands.removeListener('error', errorHandler);
 			t.equal(e, err, 'error');
 		}
 
@@ -221,13 +219,12 @@ const oddcast = require('../../lib/oddcast');
 	});
 
 	test('RequestChannel with many handlers', function (t) {
-		t.plan(5);
+		t.plan(4);
 		const payload = {};
 		const response = {};
 		let isset = null;
 
-		const handler1 = sinon.spy(function (arg) {
-			t.equal(arg, payload, 'payload');
+		const handler1 = sinon.spy(function () {
 			return response;
 		});
 
@@ -240,8 +237,8 @@ const oddcast = require('../../lib/oddcast');
 		t.equal(isset, false, 'isset');
 
 		req.request({role: 'requestTest', test: 2}, payload)
-			.then(function (res) {
-				t.equal(res, response, 'response');
+			.then(function () {
+				t.equal(handler1.callCount, 1);
 				t.equal(handler2.callCount, 0);
 			});
 	});
@@ -273,7 +270,7 @@ const oddcast = require('../../lib/oddcast');
 
 		req.request({role: 'requestTest', test: 4, param: 'foo'})
 			.then(callback)
-			.catch(function (err) {
+			.catch(oddcast.errors.NotFoundError, function (err) {
 				t.equal(err.message, 'No handler for pattern param:foo,role:requestTest,test:4');
 			});
 
@@ -287,33 +284,35 @@ const oddcast = require('../../lib/oddcast');
 	});
 
 	test('RequestChannel add and remove handler', function (t) {
-		t.plan(6);
+		t.plan(8);
 		const handler = sinon.spy();
 		const errorHandler = sinon.spy();
 		const callback = sinon.spy();
 
 		req.on('error', errorHandler);
 		req.respond({role: 'requestTest', test: 5}, handler);
-		req.request({role: 'requestTest', test: 5}, {});
 
-		setTimeout(function () {
-			t.equal(handler.callCount, 1);
-			const removed = req.remove({role: 'requestTest', test: 5}, handler);
-			t.equal(removed, true, 'removed');
-			req.request({role: 'requestTest', test: 5, param: 'foo'})
-				.then(callback)
-				.catch(function (err) {
-					t.equal(err.message, 'No handler for pattern param:foo,role:requestTest,test:5');
-				});
+		req.request({role: 'requestTest', test: 5}, {})
+			.then(function () {
+				t.equal(handler.callCount, 1);
+				const removed = req.remove({role: 'requestTest', test: 5}, handler);
+				t.equal(removed, true, 'removed');
+				req.request({role: 'requestTest', test: 5})
+					.then(callback)
+					.catch(oddcast.errors.NotFoundError, function (err) {
+						t.ok(err instanceof oddcast.errors.NotFoundError, 'err instanceof');
+						t.equal(err.message, 'No handler for pattern role:requestTest,test:5');
+					});
 
-			setTimeout(function () {
-				req.removeListener('error', errorHandler);
-				const err = errorHandler.firstCall.args[0];
-				t.equal(err.message, 'No handler for pattern param:foo,role:requestTest,test:5');
-				t.equal(handler.callCount, 1, 'handler count');
-				t.equal(callback.callCount, 0, 'callback count');
-			}, 20);
-		}, 20);
+				setTimeout(function () {
+					req.removeListener('error', errorHandler);
+					const err = errorHandler.firstCall.args[0];
+					t.ok(err instanceof oddcast.errors.NoHandlerError, 'err instanceof');
+					t.equal(err.message, 'No handler for pattern role:requestTest,test:5');
+					t.equal(handler.callCount, 1, 'handler count');
+					t.equal(callback.callCount, 0, 'callback count');
+				}, 20);
+			});
 	});
 
 	test('RequestChannel with an error in a handler', function (t) {
