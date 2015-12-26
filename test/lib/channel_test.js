@@ -112,14 +112,14 @@ StreamTransport.create = function () {
 		const errorHandler = sinon.spy();
 		channel.on('error', errorHandler);
 		transport1.write({
-				pattern: {test: 'x', foo: 'bar'},
-				payload: payload1
-			})
-			// Since this transport implements the setHandler() method, a rejected
-			// Promise will be returned here.
-			.catch(function (err) {
-				t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
-			});
+			pattern: {test: 'x', foo: 'bar'},
+			payload: payload1
+		})
+		// Since this transport implements the setHandler() method, a rejected
+		// Promise will be returned here.
+		.catch(function (err) {
+			t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
+		});
 
 		// Handlers are called asynchronously.
 		process.nextTick(function () {
@@ -356,12 +356,12 @@ StreamTransport.create = function () {
 		const errorHandler = sinon.spy();
 		channel.on('error', errorHandler);
 		transport1.write({
-				pattern: {test: 2, foo: 'bar'},
-				payload: payload1
-			})
-			.catch(function (err) {
-				t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
-			});
+			pattern: {test: 2, foo: 'bar'},
+			payload: payload1
+		})
+		.catch(function (err) {
+			t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
+		});
 
 		// The Stream Transport does not throw an NoTransportError
 		transport2.write({
