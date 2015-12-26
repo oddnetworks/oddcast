@@ -4,6 +4,7 @@ const util = require('util');
 const EventEmitter = require('events');
 const sinon = require('sinon');
 const Channel = require('../../lib/channel');
+const errors = require('../../lib/errors');
 
 // A mock transport for Command and Request Channels.
 function Transport() {
@@ -106,15 +107,24 @@ StreamTransport.create = function () {
 	});
 
 	test('no handler is called when the pattern does not match', function (t) {
-		t.plan(2);
+		t.plan(4);
 		beforeEach();
+		const errorHandler = sinon.spy();
+		channel.on('error', errorHandler);
 		transport1.write({
-			pattern: {test: 'x', foo: 'bar'},
-			payload: payload1
-		});
+				pattern: {test: 'x', foo: 'bar'},
+				payload: payload1
+			})
+			// Since this transport implements the setHandler() method, a rejected
+			// Promise will be returned here.
+			.catch(function (err) {
+				t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
+			});
 
 		// Handlers are called asynchronously.
 		process.nextTick(function () {
+			const err = errorHandler.firstCall.args[0];
+			t.equal(err.message, 'No transport mounted for pattern foo:bar,test:x');
 			t.equal(handler1.callCount, 0, 'handler2.callCount');
 			t.equal(handler2.callCount, 0, 'handler2.callCount');
 			afterEach();
@@ -341,12 +351,19 @@ StreamTransport.create = function () {
 	});
 
 	test('no call if transport does not match message pattern', function (t) {
-		t.plan(2);
+		t.plan(5);
 		beforeEach();
+		const errorHandler = sinon.spy();
+		channel.on('error', errorHandler);
 		transport1.write({
-			pattern: {test: 2, foo: 'bar'},
-			payload: payload1
-		});
+				pattern: {test: 2, foo: 'bar'},
+				payload: payload1
+			})
+			.catch(function (err) {
+				t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
+			});
+
+		// The Stream Transport does not throw an NoTransportError
 		transport2.write({
 			pattern: {test: 1, foo: 'bar'},
 			payload: payload1
@@ -356,6 +373,11 @@ StreamTransport.create = function () {
 		process.nextTick(function () {
 			t.equal(handler1.callCount, 0, 'handler1.callCount');
 			t.equal(handler2.callCount, 0, 'handler3.callCount');
+
+			// The Stream Transport does not throw an NoTransportError
+			t.equal(errorHandler.callCount, 1, 'errorHandler callCount');
+			const err = errorHandler.firstCall.args[0];
+			t.ok(err instanceof errors.NoTransportError, 'NoTransportError');
 			afterEach();
 		});
 	});
