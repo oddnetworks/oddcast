@@ -1,6 +1,6 @@
 {
   "name": "oddcast",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "An event broadcast and queue API module.",
   "author": "Odd Networks (http://oddnetworks.co)",
   "main": "./lib/oddcast.js",
