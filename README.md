@@ -147,20 +147,20 @@ Router.get('/', function (req, res) {
 API
 ---
 ### Event Channel
-#### #broadcast(pattern, payload)
+#### EventChannel#broadcast(pattern, payload)
 Broadcast an event on the underlying event transport. Sending a payload is optional.
 
 If there is no transport for the event, an `oddcast.errors.NoTransportError` will be thrown.
 
-#### #observe(pattern, handler)
+#### EventChannel#observe(pattern, handler)
 Register a handler function to handle events from the underlying transport matching the given pattern.
 
 Handler errors will be emitted by the CommandChannel instance as error events, so make sure your program is handling them.
 
-#### #remove(pattern, handler)
+#### EventChannel#remove(pattern, handler)
 Remove the receive handler at the given pattern. The pattern needs to be exactly the same as that used in #receive(). If a handler is not passed in, then all handlers on the given pattern will be removed.
 
-#### #use(pattern, transport)
+#### EventChannel#use(pattern, transport)
 Register a transport to use at the given pattern.
 
 Any messages sent via #broadcast() which do not match this pattern will not be passed to this transport.
@@ -168,22 +168,22 @@ Any messages sent via #broadcast() which do not match this pattern will not be p
 Any messages received by this transport which do not match this pattern will not be passed to the handlers.
 
 ### Command Channel
-#### #send(pattern, payload)
+#### CommandChannel#send(pattern, payload)
 Send a message on the underlying command transport. A payload is required.
 
 If there is no transport for the command, an `oddcast.errors.NoTransportError` will be thrown.
 
-#### #receive(pattern, handler)
+#### CommandChannel#receive(pattern, handler)
 Register a handler function to handle messages from the underlying transport matching the given pattern. If there is already a handler for the pattern, an `Error` will be thrown, as duplicate handlers should not be allowed on the same pattern for a Command Channel.
 
 The handler should return a Promise which resolves to `true` if the handler operation succeeded. If not, the handler should return a Promise which rejects with an Error explaining why it failed.
 
 Handler failures will be emitted by the CommandChannel instance as error events, so make sure your program is handling them.
 
-#### #remove(pattern)
+#### CommandChannel#remove(pattern)
 Remove the receive handler at the given pattern. The pattern needs to be exactly the same as that used in #receive().
 
-#### #use(pattern, transport)
+#### CommandChannel#use(pattern, transport)
 Register a transport to use at the given pattern. Registering more than one transport on the same pattern will throw an Error.
 
 Any messages sent via #send() which do not match this pattern will not be passed to this transport.
@@ -191,22 +191,22 @@ Any messages sent via #send() which do not match this pattern will not be passed
 Any messages received by this transport which do not match this pattern will not be passed to the handlers.
 
 ### Request Channel
-#### #request(pattern, payload)
+#### RequestChannel#request(pattern, payload)
 Send a request on the underlying request transport. Sending a payload is optional.
 
 Returns a Promise for the result from the receiving handler. If there was no handler registered to receive the request at the given pattern, the returned promise will be rejected with `oddcast.errors.NotFoundError`.
 
 If there is no transport for the request, an `oddcast.errors.NoTransportError` will be thrown.
 
-#### #respond(pattern, handler)
+#### RequestChannel#respond(pattern, handler)
 Register a handler function to respond to requests from the underlying transport matching the given pattern. If there is already a handler for the pattern, a plain `Error` will be thrown, as duplicate handlers should not be allowed on the same pattern for a Request Channel.
 
 Handler failures will be emitted by the CommandChannel instance as error events, so make sure your program is handling them.
 
-#### #remove(pattern)
+#### RequestChannel#remove(pattern)
 Remove the respond handler at the given pattern. The pattern needs to be exactly the same as that used in #respond().
 
-#### #use(pattern, transport)
+#### RequestChannel#use(pattern, transport)
 Register a transport to use at the given pattern. Registering more than one transport on the same pattern will throw an Error.
 
 Any requests sent via #request() which do not match this pattern will not be passed to this transport.
