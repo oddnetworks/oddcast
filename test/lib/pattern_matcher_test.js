@@ -1,6 +1,6 @@
 'use strict';
 const test = require('tape');
-const oddcast = require('../');
+const PatternMatcher = require('../../lib/pattern_matcher');
 
 (function () {
 	const lets = Object.freeze({
@@ -9,7 +9,7 @@ const oddcast = require('../');
 		y: {y: 2},
 		z: {z: 3}
 	});
-	const matcher = oddcast.PatternMatcher.create();
+	const matcher = PatternMatcher.create();
 
 	test('before all', function (t) {
 		matcher.add({foo: 'bar'}, lets.a);

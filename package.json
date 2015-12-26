@@ -3,7 +3,7 @@
   "version": "0.4.0",
   "description": "An event broadcast and queue API module.",
   "author": "Odd Networks (http://oddnetworks.co)",
-  "main": "./index.js",
+  "main": "./lib/oddcast.js",
   "scripts": {
     "lint": "xo",
     "test": "xo && tape 'test/**/*_test.js' | faucet",
@@ -19,13 +19,13 @@
     "bluebird": "3.0.5"
   },
   "devDependencies": {
-    "coveralls": "^2.11.6",
-    "faucet": "0.0.1",
-    "istanbul": "^0.4.1",
-    "sinon": "1.17.2",
-    "tap-spec": "^4.1.1",
-    "tape": "4.2.2",
-    "xo": "0.10.1"
+    "coveralls" : "2.11.6",
+    "faucet"    : "0.0.1",
+    "istanbul"  : "0.4.1",
+    "sinon"     : "1.17.2",
+    "tap-spec"  : "4.1.1",
+    "tape"      : "4.2.2",
+    "xo"        : "0.12.1"
   },
   "bugs": {
     "url": "https://github.com/oddnetworks/oddcast/issues"

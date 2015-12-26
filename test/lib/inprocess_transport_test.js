@@ -1,256 +1,216 @@
 'use strict';
-
+const Promise = require('bluebird');
 const test = require('tape');
 const sinon = require('sinon');
 
 const shared = require('../shared');
-const oddcast = require('../../');
+const oddcast = require('../../lib/oddcast');
 
 (function () {
-	const transport = oddcast.inprocessTransport();
-	const lets = {
-		events: oddcast.eventChannel(),
-		commands: oddcast.commandChannel(),
-		req: oddcast.requestChannel()
-	};
+	const events = oddcast.eventChannel();
+	const commands = oddcast.commandChannel();
+	const req = oddcast.requestChannel();
 
 	test('before all', function (t) {
-		lets.events.use({role: 'broadcastTest'}, transport);
-		lets.commands.use({role: 'commandTest'}, transport);
-		lets.req.use({role: 'requestTest'}, transport);
+		events.use({role: 'broadcastTest'}, oddcast.inprocessTransport());
+		commands.use({role: 'commandTest'}, oddcast.inprocessTransport());
+		req.use({role: 'requestTest'}, oddcast.inprocessTransport());
 		t.end();
 	});
 
-	test('broadcast channel with handler', function (t) {
-		t.plan(4);
-		var async = false;
-		var payload = {};
+	test('EventChannel with handler', function (t) {
+		t.plan(3);
+		const payload = {};
+		let async = false;
+		let isset = null;
 
-		var handler = sinon.spy(function (arg) {
+		const handler = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'args');
 			t.ok(async, 'ran async');
 		});
 
-		lets.events.observe({role: 'broadcastTest', test: 1}, handler)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset');
-			});
+		isset = events.observe({role: 'broadcastTest', test: 1}, handler);
+		t.equal(isset, true, 'isset');
 
-		lets.events.broadcast({role: 'broadcastTest', test: 1}, payload)
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
+		events.broadcast({role: 'broadcastTest', test: 1}, payload);
 
 		async = true;
 	});
 
-	test('broadcast channel with many handlers', function (t) {
-		t.plan(5);
-		var payload = {};
+	test('EventChannel with many handlers', function (t) {
+		t.plan(4);
+		const payload = {};
+		let isset = null;
 
-		var handler1 = sinon.spy(function (arg) {
+		const handler1 = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'args');
 		});
 
-		var handler2 = sinon.spy(function (arg) {
+		const handler2 = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'args');
 		});
 
-		lets.events.observe({role: 'broadcastTest', test: 2}, handler1)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset 1');
-			});
-		lets.events.observe({role: 'broadcastTest', test: 2}, handler2)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset 2');
-			});
+		isset = events.observe({role: 'broadcastTest', test: 2}, handler1);
+		t.equal(isset, true, 'isset 1');
+		isset = events.observe({role: 'broadcastTest', test: 2}, handler2);
+		t.equal(isset, true, 'isset 1');
 
-		lets.events.broadcast({role: 'broadcastTest', test: 2}, payload)
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
+		events.broadcast({role: 'broadcastTest', test: 2}, payload);
 	});
 
-	test('broadcast channel add and remove handler', function (t) {
-		t.plan(4);
-		var handler = sinon.spy();
-
-		lets.events.observe({role: 'broadcastTest', test: 4}, handler);
-		lets.events.broadcast({role: 'broadcastTest', test: 4, param: 'foo'});
-
-		setTimeout(function () {
+	test('EventChannel add and remove handler', function (t) {
+		t.plan(3);
+		const handler = sinon.spy(function () {
 			t.equal(handler.callCount, 1, 'first call count');
-			lets.events
-				.remove({role: 'broadcastTest', test: 4}, handler)
-				.then(afterRemove);
-		}, 20);
-
-		function afterRemove(removed) {
+			const removed = events.remove({role: 'broadcastTest', test: 4}, handler);
 			t.equal(removed, true, 'removed');
-			lets.events.broadcast({role: 'broadcastTest', test: 4})
-				.then(function (success) {
-					t.equal(success, true, 'success');
-				});
+			events.broadcast({role: 'broadcastTest', test: 4});
 
 			setTimeout(function () {
 				t.equal(handler.callCount, 1, 'last call count');
-			}, 20);
-		}
+			}, 12);
+		});
+
+		events.observe({role: 'broadcastTest', test: 4}, handler);
+		events.broadcast({role: 'broadcastTest', test: 4});
 	});
 
-	test('broadcast channel with an error in a handler', function (t) {
-		t.plan(2);
+	test('EventChannel with an error in a handler', function (t) {
+		t.plan(1);
 
-		var err = new shared.TestError('observer handler error');
-		var handler = sinon.spy(function () {
+		const err = new shared.TestError('observer handler error');
+		const handler = sinon.spy(function () {
 			throw err;
 		});
 
-		lets.events.observe({role: 'broadcastTest', test: 5}, handler);
+		events.observe({role: 'broadcastTest', test: 5}, handler);
+		events.broadcast({role: 'broadcastTest', test: 5});
 
-		lets.events.broadcast({role: 'broadcastTest', test: 5})
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
-
-		lets.events.on('error', function (e) {
+		events.on('error', function (e) {
 			t.equal(e, err, 'error');
 		});
 	});
 
-	test('command channel with handler', function (t) {
-		t.plan(4);
-		var async = false;
-		var payload = {};
+	test('CommandChannel with handler', function (t) {
+		t.plan(3);
+		const payload = {};
+		let async = false;
+		let isset = null;
 
-		var handler = sinon.spy(function (arg) {
+		const handler = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'arg');
 			t.ok(async, 'ran async');
 		});
 
-		lets.commands.receive({role: 'commandTest', test: 1}, handler)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset');
-			});
+		isset = commands.receive({role: 'commandTest', test: 1}, handler);
+		t.equal(isset, true, 'isset');
 
-		lets.commands.send({role: 'commandTest', test: 1}, payload)
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
+		commands.send({role: 'commandTest', test: 1}, payload);
 
 		async = true;
 	});
 
-	test('command channel with many handlers', function (t) {
+	test('CommandChannel with many handlers', function (t) {
 		t.plan(5);
-		var payload = {};
-		var handler1;
-		var handler2;
+		const payload = {};
+		let isset = null;
 
-		handler1 = sinon.spy(function (arg) {
+		const handler1 = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'got payload');
 		});
 
-		handler2 = sinon.spy();
+		const handler2 = sinon.spy();
 
 		setTimeout(function () {
 			t.equal(handler1.callCount, 1, 'count handler1');
 			t.equal(handler2.callCount, 0, 'count handler2');
 		}, 12);
 
-		lets.commands.receive({role: 'commandTest', test: 2}, handler1)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset');
-			});
+		isset = commands.receive({role: 'commandTest', test: 2}, handler1);
+		t.equal(isset, true, 'isset');
 
-		lets.commands.receive({role: 'commandTest', test: 2}, handler2)
-			.then(function (isset) {
-				t.equal(isset, false, 'isset');
-			});
+		isset = commands.receive({role: 'commandTest', test: 2}, handler2);
+		t.equal(isset, false, 'isset');
 
-		lets.commands.send({role: 'commandTest', test: 2}, payload);
+		commands.send({role: 'commandTest', test: 2}, payload);
 	});
 
-	test('command channel called without handler', function (t) {
+	test('CommandChannel called without handler', function (t) {
 		t.plan(2);
-		var handler = sinon.spy();
+		const handler = sinon.spy();
+		const errorHandler = sinon.spy();
 
-		lets.commands.receive({role: 'commandTest', test: 'NA'}, handler);
-
-		lets.commands.send({role: 'commandTest', test: 3})
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
+		commands.on('error', errorHandler);
+		commands.receive({role: 'commandTest', test: 'NA'}, handler);
+		commands.send({role: 'commandTest', test: 3});
 
 		setTimeout(function () {
+			commands.removeListener('error', errorHandler);
 			t.equal(handler.callCount, 0, 'count');
-		}, 20);
+			const err = errorHandler.firstCall.args[0];
+			t.equal(err.message, 'No handler for pattern role:commandTest,test:3');
+		}, 12);
 	});
 
-	test('command channel add and remove handler', function (t) {
+	test('CommandChannel add and remove handler', function (t) {
 		t.plan(4);
-		var handler = sinon.spy();
+		const handler = sinon.spy();
+		const errorHandler = sinon.spy();
 
-		lets.commands.receive({role: 'commandTest', test: 4}, handler);
-		lets.commands.send({role: 'commandTest', test: 4});
+		commands.on('error', errorHandler);
+		commands.receive({role: 'commandTest', test: 4}, handler);
+		commands.send({role: 'commandTest', test: 4});
 
 		setTimeout(function () {
 			t.equal(handler.callCount, 1);
-			lets.commands
-				.remove({role: 'commandTest', test: 4}, handler)
-				.then(afterRemove);
-		}, 20);
-
-		function afterRemove(removed) {
+			const removed = commands.remove({role: 'commandTest', test: 4}, handler);
 			t.equal(removed, true, 'removed');
-			lets.commands.send({role: 'commandTest', test: 4})
-				.then(function (success) {
-					t.equal(success, true, 'success');
-				});
+			commands.send({role: 'commandTest', test: 4});
 
 			setTimeout(function () {
+				commands.removeListener('error', errorHandler);
 				t.equal(handler.callCount, 1, 'count');
+				const err = errorHandler.firstCall.args[0];
+				t.equal(err.message, 'No handler for pattern role:commandTest,test:4');
 			}, 20);
-		}
+		}, 20);
 	});
 
-	test('command channel with an error in a handler', function (t) {
-		t.plan(2);
+	test('CommandChannel with an error in a handler', function (t) {
+		t.plan(1);
 
-		var err = new shared.TestError('command handler error');
-		var handler = sinon.spy(function () {
+		const err = new shared.TestError('command handler error');
+		const handler = sinon.spy(function () {
 			throw err;
 		});
 
-		lets.commands.receive({role: 'commandTest', test: 5}, handler);
-		lets.commands.send({role: 'commandTest', test: 5})
-			.then(function (success) {
-				t.equal(success, true, 'success');
-			});
-
-		lets.commands.on('error', function (e) {
+		function errorHandler(e) {
+			commands.removeListener('error', errorHandler);
 			t.equal(e, err, 'error');
-		});
+		}
+
+		commands.on('error', errorHandler);
+		commands.receive({role: 'commandTest', test: 5}, handler);
+		commands.send({role: 'commandTest', test: 5});
 	});
 
-	test('request channel with handler', function (t) {
+	test('RequestChannel with handler', function (t) {
 		t.plan(4);
-		var payload = {};
-		var response = {response: true};
-		var async = false;
+		const payload = {};
+		const response = {response: true};
+		let async = false;
+		let isset = null;
 
-		var handler = sinon.spy(function (arg) {
+		const handler = sinon.spy(function (arg) {
 			t.equal(arg, payload, 'payload');
 			t.ok(async, 'ran async');
 			return response;
 		});
 
-		lets.req.reply({role: 'requestTest', test: 1}, handler)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset');
-			});
+		isset = req.respond({role: 'requestTest', test: 1}, handler);
+		t.equal(isset, true, 'isset');
 
-		lets.req.request({role: 'requestTest', test: 1}, payload)
+		req.request({role: 'requestTest', test: 1}, payload)
 			.then(function (res) {
 				t.equal(res, response, 'response');
 			});
@@ -258,114 +218,123 @@ const oddcast = require('../../');
 		async = true;
 	});
 
-	test('request channel with many handlers', function (t) {
+	test('RequestChannel with many handlers', function (t) {
 		t.plan(4);
-		var payload = {};
-		var handler;
-		var response = {};
+		const payload = {};
+		const response = {};
+		let isset = null;
 
-		handler = sinon.spy(function (arg) {
-			t.equal(arg, payload, 'payload');
+		const handler1 = sinon.spy(function () {
 			return response;
 		});
 
-		lets.req.reply({role: 'requestTest', test: 2}, handler)
-			.then(function (isset) {
-				t.equal(isset, true, 'isset');
-			});
+		const handler2 = sinon.spy();
 
-		lets.req.reply({role: 'requestTest', test: 2}, function () {})
-			.then(function (isset) {
-				t.equal(isset, false, 'not isset');
-			});
+		isset = req.respond({role: 'requestTest', test: 2}, handler1);
+		t.equal(isset, true, 'isset');
 
-		lets.req.request({role: 'requestTest', test: 2}, payload)
-			.then(function (res) {
-				t.equal(res, response, 'response');
+		isset = req.respond({role: 'requestTest', test: 2}, handler2);
+		t.equal(isset, false, 'isset');
+
+		req.request({role: 'requestTest', test: 2}, payload)
+			.then(function () {
+				t.equal(handler1.callCount, 1);
+				t.equal(handler2.callCount, 0);
 			});
 	});
 
-	test('request with Promise result', function (t) {
+	test('RequestChannel with Promise result', function (t) {
 		t.plan(1);
-		var response = {};
+		const response = {};
 
-		var handler = sinon.spy(function () {
+		const handler = sinon.spy(function () {
 			return Promise.resolve(response);
 		});
 
-		lets.req.reply({role: 'requestTest', test: 3}, handler);
+		req.respond({role: 'requestTest', test: 3}, handler);
 
-		lets.req.request({role: 'requestTest', test: 3})
+		req.request({role: 'requestTest', test: 3})
 			.then(function (res) {
 				t.equal(res, response, 'response');
 			});
 	});
 
-	test('request channel called without handler', function (t) {
-		t.plan(3);
-		var handler = sinon.spy();
-		var callback = sinon.spy();
+	test('RequestChannel called without handler', function (t) {
+		t.plan(4);
+		const handler = sinon.spy();
+		const callback = sinon.spy();
+		const errorHandler = sinon.spy();
 
-		lets.req.reply({role: 'requestTest', test: 'foo'}, handler);
+		req.on('error', errorHandler);
+		req.respond({role: 'requestTest', test: 'foo'}, handler);
 
-		lets.req.request({role: 'requestTest', test: 4, param: 'foo'})
+		req.request({role: 'requestTest', test: 4, param: 'foo'})
 			.then(callback)
 			.catch(oddcast.errors.NotFoundError, function (err) {
-				t.equal(err.message, 'No handler for the requested pattern.');
+				t.equal(err.message, 'No handler for pattern param:foo,role:requestTest,test:4');
 			});
 
 		setTimeout(function () {
+			req.removeListener('error', errorHandler);
 			t.equal(handler.callCount, 0, 'handler count');
 			t.equal(callback.callCount, 0, 'callback count');
+			const err = errorHandler.firstCall.args[0];
+			t.equal(err.message, 'No handler for pattern param:foo,role:requestTest,test:4');
 		}, 20);
 	});
 
-	test('request channel add and remove handler', function (t) {
-		t.plan(5);
-		var handler = sinon.spy();
-		var callback = sinon.spy();
+	test('RequestChannel add and remove handler', function (t) {
+		t.plan(8);
+		const handler = sinon.spy();
+		const errorHandler = sinon.spy();
+		const callback = sinon.spy();
 
-		lets.req.reply({role: 'requestTest', test: 5}, handler);
-		lets.req.request({role: 'requestTest', test: 5}, {});
+		req.on('error', errorHandler);
+		req.respond({role: 'requestTest', test: 5}, handler);
 
-		setTimeout(function () {
-			t.equal(handler.callCount, 1);
-			lets.req
-				.remove({role: 'requestTest', test: 5}, handler)
-				.then(afterRemove);
-		}, 20);
+		req.request({role: 'requestTest', test: 5}, {})
+			.then(function () {
+				t.equal(handler.callCount, 1);
+				const removed = req.remove({role: 'requestTest', test: 5}, handler);
+				t.equal(removed, true, 'removed');
+				req.request({role: 'requestTest', test: 5})
+					.then(callback)
+					.catch(oddcast.errors.NotFoundError, function (err) {
+						t.ok(err instanceof oddcast.errors.NotFoundError, 'err instanceof');
+						t.equal(err.message, 'No handler for pattern role:requestTest,test:5');
+					});
 
-		function afterRemove(removed) {
-			t.equal(removed, true, 'removed');
-			lets.req.request({role: 'requestTest', test: 5, param: 'foo'})
-				.then(callback)
-				.catch(oddcast.errors.NotFoundError, function (err) {
-					t.equal(err.message, 'No handler for the requested pattern.');
-				});
-
-			setTimeout(function () {
-				t.equal(handler.callCount, 1, 'handler count');
-				t.equal(callback.callCount, 0, 'callback count');
-			}, 20);
-		}
+				setTimeout(function () {
+					req.removeListener('error', errorHandler);
+					const err = errorHandler.firstCall.args[0];
+					t.ok(err instanceof oddcast.errors.NoHandlerError, 'err instanceof');
+					t.equal(err.message, 'No handler for pattern role:requestTest,test:5');
+					t.equal(handler.callCount, 1, 'handler count');
+					t.equal(callback.callCount, 0, 'callback count');
+				}, 20);
+			});
 	});
 
-	test('requeset channel with an error in a handler', function (t) {
-		t.plan(2);
+	test('RequestChannel with an error in a handler', function (t) {
+		t.plan(3);
 
-		var err = new shared.TestError('request handler error');
-		var handler = sinon.spy(function () {
+		const errorHandler = sinon.spy();
+		const err = new shared.TestError('request handler error');
+		const handler = sinon.spy(function () {
 			throw err;
 		});
-		var callback = sinon.spy();
+		const callback = sinon.spy();
 
-		lets.req.reply({role: 'requestTest', test: 6}, handler);
+		req.on('error', errorHandler);
+		req.respond({role: 'requestTest', test: 6}, handler);
 
-		lets.req
+		req
 			.request({role: 'requestTest', test: 6, param: 'foo'})
 			.then(callback)
-			.catch(shared.TestError, function (e) {
+			.catch(function (e) {
+				req.removeListener('error', errorHandler);
 				t.equal(e, err, 'error');
+				t.equal(errorHandler.firstCall.args[0], err, 'error');
 				t.equal(callback.callCount, 0, 'callback count');
 			});
 	});
