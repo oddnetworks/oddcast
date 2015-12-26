@@ -24,10 +24,10 @@ To make all this work, you need an asynchronous communication mechanism to send 
 
 Quick Start
 -----------
-Oddcast supports 3 kinds of messages: **Broadcast**, **Command**, and **Request**. To use them you create a channel for the one you want, and give it a transport which supports the channel type under the covers.
+Oddcast supports 3 kinds of messages: **Events**, **Command**, and **Request**. To use them you create a channel for the one you want, and give it a transport which supports the channel type under the covers.
 
-### Broadcast Channel
-A Broadcast Channel broadcasts events throughout the system to anyone who might be listening. This is the typical event system we've seen in JavaScript applications for many years.
+### Events Channel
+An Events Channel broadcasts events throughout the system to anyone who might be listening. This is the typical event system we've seen in JavaScript applications for many years.
 
 ```js
 var oddcast = require('oddcast');
