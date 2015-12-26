@@ -6,7 +6,6 @@ Oddcast
 
 [![npm version][npm-badge]][npm-url]
 [![Build Status][travis-badge]][travis-url]
-[![Coverage Status][coveralls-badge]][coveralls-url]
 [![Dependency Status][david-badge]][david-url]
 
 Summary
@@ -226,7 +225,5 @@ Unless otherwise indicated, all source code is licensed under the MIT license. S
 [npm-url]: https://badge.fury.io/js/oddcast
 [travis-badge]: https://api.travis-ci.org/oddnetworks/oddcast.svg
 [travis-url]: https://travis-ci.org/oddnetworks/oddcast
-[coveralls-badge]:https://coveralls.io/repos/oddnetworks/oddcast/badge.svg?branch=master&service=github
-[coveralls-url]: https://coveralls.io/github/oddnetworks/oddcast?branch=master
 [david-badge]: https://david-dm.org/oddnetworks/oddcast.svg
 [david-url]: https://david-dm.org/oddnetworks/oddcast
