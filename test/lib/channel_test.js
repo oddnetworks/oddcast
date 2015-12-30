@@ -260,6 +260,48 @@ StreamTransport.create = function () {
 	});
 })();
 
+(function removeAndAddSingleHandlers() {
+	const channel = Channel.create();
+	const transport = Transport.create();
+
+	let handler1;
+	let handler2;
+
+	test('before all removeAndAddSingleHandlers', function (t) {
+		channel.use({x: 1}, transport);
+
+		handler2 = sinon.spy(function () {
+			t.end();
+		});
+
+		handler1 = sinon.spy(function () {
+			channel.remove({x: 1}, handler1);
+			channel.addSingleHandler({x: 1}, handler2);
+			transport.write({
+				pattern: {x: 1},
+				payload: {}
+			});
+		});
+
+		channel.addSingleHandler({x: 1}, handler1);
+
+		transport.write({
+			pattern: {x: 1},
+			payload: {}
+		});
+	});
+
+	test('handler1 is called once', function (t) {
+		t.plan(1);
+		t.equal(handler1.callCount, 1);
+	});
+
+	test('handler2 is called once', function (t) {
+		t.plan(1);
+		t.equal(handler2.callCount, 1);
+	});
+})();
+
 (function withMultipleTransports() {
 	let channel;
 
