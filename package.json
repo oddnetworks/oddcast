@@ -1,6 +1,6 @@
 {
   "name": "oddcast",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An event broadcast and queue API module.",
   "author": "Odd Networks (http://oddnetworks.co)",
   "main": "./lib/oddcast.js",
@@ -14,12 +14,12 @@
   },
   "homepage": "https://github.com/oddnetworks/oddcast/",
   "dependencies": {
-    "bluebird": "~3.1.1"
+    "bluebird": "~3.3.0"
   },
   "devDependencies": {
-    "sinon" : "~1.17.2",
-    "tape"  : "~4.3.0",
-    "xo"    : "~0.12.1"
+    "sinon" : "~1.17.0",
+    "tape"  : "~4.4.0",
+    "xo"    : "~0.12.0"
   },
   "bugs": {
     "url": "https://github.com/oddnetworks/oddcast/issues"
