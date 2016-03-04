@@ -6,7 +6,7 @@
   "main": "./lib/oddcast.js",
   "scripts": {
     "lint": "xo",
-    "test": "xo && tape 'test/**/*_test.js'"
+    "test": "xo && jasmine"
   },
   "repository": {
     "type": "git",
