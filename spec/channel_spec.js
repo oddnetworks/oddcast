@@ -1,4 +1,4 @@
-/* global jasmine, describe, beforeAll, it, expect */
+/* global jasmine, describe, beforeAll, it, expect, spyOn */
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
@@ -6,6 +6,7 @@ const Promise = require('bluebird');
 
 const errors = require('../lib/errors');
 const NoHandlerError = errors.NoHandlerError;
+const NoTransportError = errors.NoTransportError;
 
 const Channel = require('../lib/channel');
 const Transport = require('./support/transport');
@@ -520,6 +521,85 @@ describe('Channel', function () {
 				it('does not call the second handler', function () {
 					expect(HANDLER2).not.toHaveBeenCalled();
 				});
+			});
+		});
+	});
+
+	describe('broadcast', function () {
+		const PAYLOAD1 = {PAYLOAD: 1};
+		const ERROR1 = new Error('ERROR1');
+
+		describe('without any transports', function () {
+			beforeAll(function () {
+				this.channel = Channel.create();
+			});
+
+			it('throws a NoTransportError', function () {
+				const channel = this.channel;
+
+				function broadcast() {
+					channel.broadcast({role: 'foo', cmd: 'bar'});
+				}
+
+				expect(broadcast).toThrowError(
+					NoTransportError,
+					'No transport mounted for pattern cmd:bar,role:foo'
+				);
+			});
+		});
+
+		describe('with transports', function () {
+			beforeAll(function () {
+				const channel = Channel.create();
+
+				this.matchingTransport = StreamTransport.create();
+				this.nonMatchingTransport = StreamTransport.create();
+
+				spyOn(this.matchingTransport, 'write');
+				spyOn(this.nonMatchingTransport, 'write');
+
+				channel.useStream({role: 'foo'}, this.matchingTransport);
+				channel.useStream({role: 'foo', cmd: 'baz'}, this.nonMatchingTransport);
+
+				channel.broadcast({role: 'foo', cmd: 'bar'}, PAYLOAD1);
+			});
+
+			it('calls matching transports write() with pattern and payload', function () {
+				expect(this.matchingTransport.write).toHaveBeenCalledTimes(1);
+				expect(this.matchingTransport.write).toHaveBeenCalledWith({
+					pattern: {role: 'foo', cmd: 'bar'},
+					payload: PAYLOAD1
+				});
+			});
+
+			it('does not call write() on non-matching transports', function () {
+				expect(this.nonMatchingTransport.write).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('when transport.write() returns rejected Promise', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+
+				const transport = StreamTransport.create();
+				transport.write = function () {
+					return Promise.reject(ERROR1);
+				};
+
+				this.errorHandler = function () {
+					done();
+				};
+
+				spyOn(this, 'errorHandler').and.callThrough();
+				channel.on('error', this.errorHandler);
+
+				channel.useStream({role: 'foo'}, transport);
+				channel.broadcast({role: 'foo', cmd: 'bar'}, PAYLOAD1);
+			});
+
+			it('emits the error', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(ERROR1);
 			});
 		});
 	});
