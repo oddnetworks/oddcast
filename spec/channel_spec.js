@@ -1,4 +1,4 @@
-/* global jasmine, describe, beforeAll, it, expect, spyOn */
+/* global jasmine, describe, beforeAll, it, expect, spyOn, xdescribe */
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
@@ -603,4 +603,186 @@ describe('Channel', function () {
 			});
 		});
 	});
+
+	describe('onMessageHandler', function () {
+		describe('without matching transports', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+
+				this.errorHandler = function () {};
+
+				spyOn(this, 'errorHandler');
+				channel.on('error', this.errorHandler);
+
+				channel.use({role: 'bar'}, transport);
+
+				transport.write({pattern: {role: 'foo'}}).catch(err => {
+					this.rejectedError = err;
+					done();
+				});
+			});
+
+			it('emits a NoTransportError', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(new NoTransportError({role: 'foo'}));
+			});
+
+			it('rejects with a NoTransportError', function () {
+				expect(this.rejectedError instanceof NoTransportError).toBe(true);
+			});
+		});
+
+		describe('with mismatched transport', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+				const mismatchedTransport = Transport.create();
+
+				this.errorHandler = function () {};
+
+				spyOn(this, 'errorHandler');
+				channel.on('error', this.errorHandler);
+
+				channel.use({role: 'foo'}, mismatchedTransport);
+				channel.use({role: 'bar'}, transport);
+
+				transport.write({pattern: {role: 'foo'}}).catch(err => {
+					this.rejectedError = err;
+					done();
+				});
+			});
+
+			it('emits a NoTransportError', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(new NoTransportError({role: 'foo'}));
+			});
+
+			it('rejects with a NoTransportError', function () {
+				expect(this.rejectedError instanceof NoTransportError).toBe(true);
+			});
+		});
+
+		describe('without any handlers', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+
+				this.errorHandler = function () {};
+
+				spyOn(this, 'errorHandler');
+				channel.on('error', this.errorHandler);
+
+				channel.use({role: 'foo'}, transport);
+
+				transport.write({pattern: {role: 'foo'}}).catch(err => {
+					this.rejectedError = err;
+					done();
+				});
+			});
+
+			it('emits a NoTransportError', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(new NoHandlerError({role: 'foo'}));
+			});
+
+			it('rejects with a NoTransportError', function () {
+				expect(this.rejectedError instanceof NoHandlerError).toBe(true);
+			});
+		});
+
+		describe('with thrown error in handler', function () {
+			const ERROR1 = new Error('ERROR1');
+
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+
+				this.errorHandler = function () {};
+
+				spyOn(this, 'errorHandler');
+				channel.on('error', this.errorHandler);
+
+				channel.use({role: 'foo'}, transport);
+
+				channel.addSingleHandler({role: 'foo'}, function () {
+					throw ERROR1;
+				});
+
+				transport.write({pattern: {role: 'foo'}}).catch(err => {
+					this.rejectedError = err;
+					done();
+				});
+			});
+
+			it('emits the error', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(ERROR1);
+			});
+
+			it('rejects the error', function () {
+				expect(this.rejectedError).toBe(ERROR1);
+			});
+		});
+
+		describe('with rejected promise from handler', function () {
+			const ERROR1 = new Error('ERROR1');
+
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+
+				this.errorHandler = function () {};
+
+				spyOn(this, 'errorHandler');
+				channel.on('error', this.errorHandler);
+
+				channel.use({role: 'foo'}, transport);
+
+				channel.addSingleHandler({role: 'foo'}, function () {
+					return Promise.reject(ERROR1);
+				});
+
+				transport.write({pattern: {role: 'foo'}}).catch(err => {
+					this.rejectedError = err;
+					done();
+				});
+			});
+
+			it('emits the error', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(ERROR1);
+			});
+
+			it('rejects the error', function () {
+				expect(this.rejectedError).toBe(ERROR1);
+			});
+		});
+
+		describe('with returned value from handler', function () {
+			const RESPONSE = {res: 1};
+
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = Transport.create();
+
+				channel.use({role: 'foo'}, transport);
+
+				channel.addSingleHandler({role: 'foo'}, function () {
+					return RESPONSE;
+				});
+
+				transport.write({pattern: {role: 'foo'}}).then(res => {
+					this.response = res;
+					done();
+				});
+			});
+
+			it('returns the value to the transport', function () {
+				expect(this.response).toBe(RESPONSE);
+			});
+		});
+	});
+
+	xdescribe('onEventHandler');
 });
