@@ -1,4 +1,4 @@
-/* global jasmine, describe, beforeAll, it, expect, spyOn, xdescribe */
+/* global jasmine, describe, beforeAll, it, expect, spyOn */
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
@@ -617,10 +617,18 @@ describe('Channel', function () {
 
 				channel.use({role: 'bar'}, transport);
 
+				this.handler = function () {};
+				spyOn(this, 'handler');
+				channel.addSingleHandler({role: 'foo'}, this.handler);
+
 				transport.write({pattern: {role: 'foo'}}).catch(err => {
 					this.rejectedError = err;
 					done();
 				});
+			});
+
+			it('does not call added handlers', function () {
+				expect(this.handler).not.toHaveBeenCalled();
 			});
 
 			it('emits a NoTransportError', function () {
@@ -647,10 +655,18 @@ describe('Channel', function () {
 				channel.use({role: 'foo'}, mismatchedTransport);
 				channel.use({role: 'bar'}, transport);
 
+				this.handler = function () {};
+				spyOn(this, 'handler');
+				channel.addSingleHandler({role: 'foo'}, this.handler);
+
 				transport.write({pattern: {role: 'foo'}}).catch(err => {
 					this.rejectedError = err;
 					done();
 				});
+			});
+
+			it('does not call added handlers', function () {
+				expect(this.handler).not.toHaveBeenCalled();
 			});
 
 			it('emits a NoTransportError', function () {
@@ -681,7 +697,7 @@ describe('Channel', function () {
 				});
 			});
 
-			it('emits a NoTransportError', function () {
+			it('emits a NoHandlerError', function () {
 				expect(this.errorHandler).toHaveBeenCalledTimes(1);
 				expect(this.errorHandler).toHaveBeenCalledWith(new NoHandlerError({role: 'foo'}));
 			});
@@ -784,5 +800,107 @@ describe('Channel', function () {
 		});
 	});
 
-	xdescribe('onEventHandler');
+	describe('onEventHandler', function () {
+		describe('without matching transports', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = StreamTransport.create();
+
+				channel.useStream({role: 'bar'}, transport);
+
+				this.handler = function () {};
+				spyOn(this, 'handler');
+				channel.addMultiHandler({role: 'foo'}, this.handler);
+
+				transport.write({pattern: {role: 'foo'}});
+
+				setTimeout(done, 30);
+			});
+
+			it('does not call added handlers', function () {
+				expect(this.handler).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('with mismatched transport', function () {
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = StreamTransport.create();
+				const mismatchedTransport = StreamTransport.create();
+
+				channel.useStream({role: 'foo'}, mismatchedTransport);
+				channel.useStream({role: 'bar'}, transport);
+
+				this.handler = function () {};
+				spyOn(this, 'handler');
+				channel.addMultiHandler({role: 'foo'}, this.handler);
+
+				transport.write({pattern: {role: 'foo'}});
+
+				setTimeout(done, 30);
+			});
+
+			it('does not call added handlers', function () {
+				expect(this.handler).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('with thrown error in handler', function () {
+			const ERROR1 = new Error('ERROR1');
+
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = StreamTransport.create();
+
+				this.errorHandler = function () {
+					done();
+				};
+
+				spyOn(this, 'errorHandler').and.callThrough();
+				channel.on('error', this.errorHandler);
+
+				channel.useStream({role: 'foo'}, transport);
+
+				channel.addMultiHandler({role: 'foo'}, function () {
+					throw ERROR1;
+				});
+
+				transport.write({pattern: {role: 'foo'}});
+			});
+
+			it('emits the error', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(ERROR1);
+			});
+		});
+
+		describe('with rejected promise from handler', function () {
+			const ERROR1 = new Error('ERROR1');
+
+			beforeAll(function (done) {
+				const channel = Channel.create();
+				const transport = StreamTransport.create();
+
+				this.errorHandler = function () {
+					done();
+				};
+
+				spyOn(this, 'errorHandler').and.callThrough();
+				channel.on('error', this.errorHandler);
+
+				channel.useStream({role: 'foo'}, transport);
+
+				channel.addMultiHandler({role: 'foo'}, function () {
+					return Promise.reject(ERROR1);
+				});
+
+				transport.write({pattern: {role: 'foo'}});
+			});
+
+			it('emits the error', function () {
+				expect(this.errorHandler).toHaveBeenCalledTimes(1);
+				expect(this.errorHandler).toHaveBeenCalledWith(ERROR1);
+			});
+		});
+	});
 });
