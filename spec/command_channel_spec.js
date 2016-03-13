@@ -24,7 +24,7 @@ describe('CommandChannel', function () {
 
 	describe('remove()', function () {
 		it('uses Channel.prototype.addSingleHandler', function () {
-			expect(this.channel.receive).toBe(Channel.prototype.addSingleHandler);
+			expect(this.channel.remove).toBe(Channel.prototype.remove);
 		});
 	});
 
