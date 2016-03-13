@@ -1,4 +1,4 @@
-/* global describe, beforeAll, it, expect, spyOn, xdescribe */
+/* global describe, beforeAll, it, expect, spyOn */
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
@@ -6,6 +6,8 @@ var oddcast = require('../lib/oddcast');
 
 describe('InprocessTransport', function () {
 	var payload1 = {event: 1};
+	var payload2 = {event: 1};
+	var result1 = {result: 1};
 
 	describe('with EventChannel', function () {
 		beforeAll(function (done) {
@@ -49,13 +51,105 @@ describe('InprocessTransport', function () {
 				this.channel.send({role: 'foo', item: 'bar'}, payload1);
 			});
 
-			it('emits a NotFound error', function () {
+			it('emits a NoHandler error', function () {
 				expect(this.error instanceof oddcast.errors.NoHandlerError).toBe(true);
+			});
+		});
+
+		describe('with a matching handler', function () {
+			beforeAll(function (done) {
+				this.channel = oddcast.commandChannel();
+				this.transport = oddcast.inprocessTransport();
+				this.channel.use({role: 'foo'}, this.transport);
+
+				this.errorHandler = function () {};
+				spyOn(this, 'errorHandler');
+
+				var resolve = createResolver(done, 2);
+				this.handler1 = resolve;
+				spyOn(this, 'handler1').and.callThrough();
+
+				this.channel.on('error', this.errorHandler);
+				this.channel.receive({role: 'foo', item: 'bar'}, this.handler1);
+
+				this.channel.send({role: 'foo', item: 'bar'}, payload1);
+				this.channel.send({role: 'foo', item: 'bar'}, payload2);
+			});
+
+			it('calls the handler', function () {
+				expect(this.handler1).toHaveBeenCalledTimes(2);
 			});
 		});
 	});
 
-	xdescribe('with RequestChannel', function () {
+	describe('with RequestChannel', function () {
+		describe('without matching handler', function () {
+			beforeAll(function (done) {
+				this.channel = oddcast.requestChannel();
+				this.transport = oddcast.inprocessTransport();
+				this.channel.use({role: 'foo'}, this.transport);
+
+				this.errorHandler = function () {};
+				spyOn(this, 'errorHandler');
+				this.channel.on('error', this.errorHandler);
+
+				var self = this;
+				this.channel.request({role: 'foo', item: 'bar'}, payload1)
+					.then(function () {
+						done.fail(new Error('should not call .then()'));
+					})
+					.catch(function (err) {
+						self.error = err;
+						done();
+					});
+			});
+
+			it('rejects with a NotFoundError error', function () {
+				expect(this.error instanceof oddcast.errors.NotFoundError).toBe(true);
+			});
+		});
+
+		describe('with a matching handler', function () {
+			beforeAll(function (done) {
+				this.channel = oddcast.requestChannel();
+				this.transport = oddcast.inprocessTransport();
+				this.channel.use({role: 'foo'}, this.transport);
+
+				this.errorHandler = function () {};
+				spyOn(this, 'errorHandler');
+
+				this.channel.on('error', this.errorHandler);
+
+				this.payloads = [];
+				this.responses = [];
+				var self = this;
+
+				this.channel.respond({role: 'foo', item: 'bar'}, function (payload) {
+					self.payloads.push(payload);
+					return result1;
+				});
+
+				var resolve = createResolver(done, 2, result1);
+
+				this.channel.request({role: 'foo', item: 'bar'}, payload1)
+					.then(function (res) {
+						self.responses.push(res);
+						resolve();
+					});
+
+				this.channel.request({role: 'foo', item: 'bar'}, payload2)
+					.then(function (res) {
+						self.responses.push(res);
+						resolve();
+					});
+			});
+
+			it('calls the handler with the payloads', function () {
+				expect(this.payloads.length).toBe(2);
+				expect(this.payloads[0]).toBe(payload1);
+				expect(this.payloads[1]).toBe(payload2);
+			});
+		});
 	});
 });
 
