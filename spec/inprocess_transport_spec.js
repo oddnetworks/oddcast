@@ -5,9 +5,9 @@
 var oddcast = require('../lib/oddcast');
 
 describe('InprocessTransport', function () {
-	var payload1 = {event: 1};
-	var payload2 = {event: 1};
-	var result1 = {result: 1};
+	var PAYLOAD1 = Object.freeze({event: 1});
+	var PAYLOAD2 = Object.freeze({event: 1});
+	var RESULT1 = Object.freeze({result: 1});
 
 	describe('with EventChannel', function () {
 		beforeAll(function (done) {
@@ -24,7 +24,7 @@ describe('InprocessTransport', function () {
 			this.channel.observe({role: 'foo', item: 'bar'}, this.handler1);
 			this.channel.observe({role: 'foo', item: 'bar'}, this.handler2);
 
-			this.channel.broadcast({role: 'foo', item: 'bar'}, payload1);
+			this.channel.broadcast({role: 'foo', item: 'bar'}, PAYLOAD1);
 		});
 
 		it('calls the handlers', function () {
@@ -48,7 +48,7 @@ describe('InprocessTransport', function () {
 				spyOn(this, 'errorHandler').and.callThrough();
 
 				this.channel.on('error', this.errorHandler);
-				this.channel.send({role: 'foo', item: 'bar'}, payload1);
+				this.channel.send({role: 'foo', item: 'bar'}, PAYLOAD1);
 			});
 
 			it('emits a NoHandler error', function () {
@@ -72,8 +72,8 @@ describe('InprocessTransport', function () {
 				this.channel.on('error', this.errorHandler);
 				this.channel.receive({role: 'foo', item: 'bar'}, this.handler1);
 
-				this.channel.send({role: 'foo', item: 'bar'}, payload1);
-				this.channel.send({role: 'foo', item: 'bar'}, payload2);
+				this.channel.send({role: 'foo', item: 'bar'}, PAYLOAD1);
+				this.channel.send({role: 'foo', item: 'bar'}, PAYLOAD2);
 			});
 
 			it('calls the handler', function () {
@@ -94,7 +94,7 @@ describe('InprocessTransport', function () {
 				this.channel.on('error', this.errorHandler);
 
 				var self = this;
-				this.channel.request({role: 'foo', item: 'bar'}, payload1)
+				this.channel.request({role: 'foo', item: 'bar'}, PAYLOAD1)
 					.then(function () {
 						done.fail(new Error('should not call .then()'));
 					})
@@ -126,18 +126,18 @@ describe('InprocessTransport', function () {
 
 				this.channel.respond({role: 'foo', item: 'bar'}, function (payload) {
 					self.payloads.push(payload);
-					return result1;
+					return RESULT1;
 				});
 
-				var resolve = createResolver(done, 2, result1);
+				var resolve = createResolver(done, 2, RESULT1);
 
-				this.channel.request({role: 'foo', item: 'bar'}, payload1)
+				this.channel.request({role: 'foo', item: 'bar'}, PAYLOAD1)
 					.then(function (res) {
 						self.responses.push(res);
 						resolve();
 					});
 
-				this.channel.request({role: 'foo', item: 'bar'}, payload2)
+				this.channel.request({role: 'foo', item: 'bar'}, PAYLOAD2)
 					.then(function (res) {
 						self.responses.push(res);
 						resolve();
@@ -146,8 +146,8 @@ describe('InprocessTransport', function () {
 
 			it('calls the handler with the payloads', function () {
 				expect(this.payloads.length).toBe(2);
-				expect(this.payloads[0]).toBe(payload1);
-				expect(this.payloads[1]).toBe(payload2);
+				expect(this.payloads[0]).toBe(PAYLOAD1);
+				expect(this.payloads[1]).toBe(PAYLOAD2);
 			});
 		});
 	});
