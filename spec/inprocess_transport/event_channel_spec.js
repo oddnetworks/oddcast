@@ -14,6 +14,7 @@ describe('InprocessTransport with EventChannel', function () {
 	});
 
 	afterEach(function () {
+		this.channel.removeAllListeners('error');
 		this.channel.remove({});
 	});
 
@@ -62,8 +63,37 @@ describe('InprocessTransport with EventChannel', function () {
 		this.channel.broadcast({role: 'foo'}, PAYLOAD_1);
 	});
 
+	it('broadcasts events to multiple observers', function (done) {
+		var resolve = createResolver(done, 3);
+
+		this.channel.observe({role: 'foo'}, function (payload) {
+			expect(payload).toBe(PAYLOAD_1);
+			resolve();
+		});
+		this.channel.observe({role: 'foo'}, function (payload) {
+			expect(payload).toBe(PAYLOAD_1);
+			resolve();
+		});
+		this.channel.observe({role: 'foo', item: 'bar'}, function (payload) {
+			expect(payload).toBe(PAYLOAD_1);
+			resolve();
+		});
+
+		this.channel.broadcast({role: 'foo', item: 'bar'}, PAYLOAD_1);
+	});
+
 	it('removes all handlers (in afterEach())', function () {
 		var matcher = this.channel.handlerMatcher;
 		expect(Object.keys(matcher.index).length).toBe(0);
 	});
 });
+
+function createResolver(done, expectedCount) {
+	var count = 0;
+	return function () {
+		count += 1;
+		if (count >= expectedCount) {
+			done();
+		}
+	};
+}
