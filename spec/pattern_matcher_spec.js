@@ -84,4 +84,29 @@ describe('PatternMatcher', function () {
 			expect(res.length).toBe(0);
 		});
 	});
+
+	describe('remove all', function () {
+		beforeAll(function () {
+			this.matcher = PatternMatcher.create();
+
+			this.matcher.add({foo: 'bar'}, A);
+			this.matcher.add({foo: 'baz'}, B);
+
+			this.before = Object.freeze({
+				'foo:bar': this.matcher.find({foo: 'bar'}).slice(),
+				'foo:baz': this.matcher.find({foo: 'baz'}).slice()
+			});
+
+			this.matcher.remove({});
+		});
+
+		it('removes all objects from all patterns', function () {
+			expect(this.before['foo:bar'].length).toBe(1);
+			expect(this.before['foo:bar']).toContain(A);
+			expect(this.before['foo:baz'].length).toBe(1);
+			expect(this.before['foo:baz']).toContain(B);
+			expect(this.matcher.find({foo: 'bar'}).length).toBe(0);
+			expect(this.matcher.find({foo: 'baz'}).length).toBe(0);
+		});
+	});
 });
