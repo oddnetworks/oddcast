@@ -84,30 +84,38 @@ describe('InprocessTransport with EventChannel', function () {
 		this.channel.broadcast({role: 'foo', item: 'bar'}, PAYLOAD_1);
 	});
 
-	it('emits the error when a handler throws an error', function (done) {
+	it('emits the error when an observer throws an error', function (done) {
 		this.channel.observe({role: 'foo'}, function () {
 			throw ERROR_1;
 		});
 
 		this.channel.on('error', function (err) {
 			expect(err).toBe(ERROR_1);
-			done();
 		});
 
 		this.channel.broadcast({role: 'foo'}, PAYLOAD_1);
+
+		// Give enough time for handlers to be called
+		setTimeout(function () {
+			done();
+		}, 34);
 	});
 
-	it('emits the error when a handler rejects', function (done) {
+	it('emits the error when an observer rejects', function (done) {
 		this.channel.observe({role: 'foo'}, function () {
 			return Promise.reject(ERROR_1);
 		});
 
 		this.channel.on('error', function (err) {
 			expect(err).toBe(ERROR_1);
-			done();
 		});
 
 		this.channel.broadcast({role: 'foo'}, PAYLOAD_1);
+
+		// Give enough time for handlers to be called
+		setTimeout(function () {
+			done();
+		}, 34);
 	});
 
 	it('removes all handlers (in afterEach())', function () {
