@@ -2,10 +2,12 @@
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
+var Promise = require('bluebird');
 var oddcast = require('../../lib/oddcast');
 
 describe('InprocessTransport with EventChannel', function () {
 	var PAYLOAD_1 = Object.freeze({event: 1});
+	var ERROR_1 = new Error('ERROR_1');
 
 	beforeAll(function () {
 		this.channel = oddcast.eventChannel();
@@ -80,6 +82,32 @@ describe('InprocessTransport with EventChannel', function () {
 		});
 
 		this.channel.broadcast({role: 'foo', item: 'bar'}, PAYLOAD_1);
+	});
+
+	it('emits the error when a handler throws an error', function (done) {
+		this.channel.observe({role: 'foo'}, function () {
+			throw ERROR_1;
+		});
+
+		this.channel.on('error', function (err) {
+			expect(err).toBe(ERROR_1);
+			done();
+		});
+
+		this.channel.broadcast({role: 'foo'}, PAYLOAD_1);
+	});
+
+	it('emits the error when a handler rejects', function (done) {
+		this.channel.observe({role: 'foo'}, function () {
+			return Promise.reject(ERROR_1);
+		});
+
+		this.channel.on('error', function (err) {
+			expect(err).toBe(ERROR_1);
+			done();
+		});
+
+		this.channel.broadcast({role: 'foo'}, PAYLOAD_1);
 	});
 
 	it('removes all handlers (in afterEach())', function () {
