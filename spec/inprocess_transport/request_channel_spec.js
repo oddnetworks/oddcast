@@ -38,7 +38,8 @@ describe('InprocessTransport with CommandChannel', function () {
 
 	it('passes the payload to handlers', function (done) {
 		this.channel.respond({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			done();
 		});
 

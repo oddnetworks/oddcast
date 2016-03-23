@@ -33,7 +33,8 @@ describe('InprocessTransport with CommandChannel', function () {
 
 	it('passes the payload to handlers', function (done) {
 		this.channel.receive({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			done();
 		});
 
@@ -42,7 +43,8 @@ describe('InprocessTransport with CommandChannel', function () {
 
 	it('sends specific commands to generic receivers', function (done) {
 		this.channel.receive({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			done();
 		});
 
@@ -66,7 +68,8 @@ describe('InprocessTransport with CommandChannel', function () {
 
 	it('does not send commands to multiple receivers', function (done) {
 		this.channel.receive({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 		});
 
 		var handler2 = jasmine.createSpy('handler2');

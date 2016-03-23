@@ -34,7 +34,8 @@ describe('InprocessTransport with EventChannel', function () {
 
 	it('passes the payload to handlers', function (done) {
 		this.channel.observe({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			done();
 		});
 
@@ -43,7 +44,8 @@ describe('InprocessTransport with EventChannel', function () {
 
 	it('broadcasts specific events to generic observers', function (done) {
 		this.channel.observe({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			done();
 		});
 
@@ -69,15 +71,18 @@ describe('InprocessTransport with EventChannel', function () {
 		var resolve = createResolver(done, 3);
 
 		this.channel.observe({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			resolve();
 		});
 		this.channel.observe({role: 'foo'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			resolve();
 		});
 		this.channel.observe({role: 'foo', item: 'bar'}, function (payload) {
-			expect(payload).toBe(PAYLOAD_1);
+			expect(payload).not.toBe(PAYLOAD_1);
+			expect(payload).toEqual(PAYLOAD_1);
 			resolve();
 		});
 
