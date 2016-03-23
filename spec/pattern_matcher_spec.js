@@ -35,13 +35,11 @@ describe('PatternMatcher', function () {
 
 	it('finds by decreasing specificity', function () {
 		var res = this.matcher.find({baz: 'zee', foo: 'bar', cat: 'g'});
-		// expect(res.length).toBe(4);
 		expect(res.length).toBe(3);
 		expect(res).toContain(A);
 		expect(res).toContain(B);
 		expect(res).toContain(C);
-		// TODO: This should work. Pattern lexical order needs to go away.
-		// expect(res).toContain(D);
+		expect(res).not.toContain(D);
 		expect(res).not.toContain(E);
 	});
 

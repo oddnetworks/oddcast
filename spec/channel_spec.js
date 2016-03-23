@@ -543,7 +543,7 @@ describe('Channel', function () {
 
 				expect(broadcast).toThrowError(
 					NoTransportError,
-					'No transport mounted for pattern cmd:bar,role:foo'
+					'No transport mounted for pattern role:foo,cmd:bar'
 				);
 			});
 		});
