@@ -45,6 +45,18 @@ describe('InprocessTransport with CommandChannel', function () {
 		this.channel.request({role: 'foo'}, PAYLOAD_1);
 	});
 
+	it('responds with a resolved promise for the return value', function (done) {
+		this.channel.respond({role: 'foo'}, function () {
+			return RESPONSE_1;
+		});
+
+		this.channel.request({role: 'foo'}, PAYLOAD_1)
+			.then(function (res) {
+				expect(res).toBe(RESPONSE_1);
+				done();
+			});
+	});
+
 	it('removes all handlers (in afterEach())', function () {
 		var matcher = this.channel.handlerMatcher;
 		expect(Object.keys(matcher.index).length).toBe(0);
