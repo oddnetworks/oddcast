@@ -13,7 +13,7 @@ See the short [manifesto](#manifesto) below.
 
 Quick Start
 -----------
-Oddcast exposes event channel communication through an Event Bus, simply called "Bus".
+Oddcast exposes event channel communication through an Event Bus, simply called "Bus". A bus instance exposes 3 types of communication channels: events, commands, and requests.
 
 So so assume __component A__ is an npm package used for data storage. You'd do this:
 ```js
@@ -58,9 +58,12 @@ And, assume __component B__ is an node.js module used for logging in your app. Y
 exports.initialize = function (bus) {
 
   bus.observe({role: 'datastore'}, function (action) {
+    // See the section in the README about action Objects
+
     console.log(action.pattern);
     // outputs {role: 'datastore', cmd: 'createRecord'}
     // or {role: 'datastore', cmd: 'fetchRecord'}
+
     if (action.error) {
       console.log('resulted in error');
     } else {
@@ -110,47 +113,63 @@ bus.query({role: 'datastore', cmd: 'fetchRecord'}, {id: 'foo-123'})
   });
 ```
 
-### Events Channel
-An Events Channel broadcasts events throughout the system to anyone who might be listening. This is the typical event system we've seen in JavaScript applications for many years.
-
-```js
-var oddcast = require('oddcast');
-var transport = require('my-transport');
-var events = oddcast.eventChannel();
-events.use({role: 'store'}, transport({
-    url: 'http://mypubsub.io/channel/1'
-  }));
-
-events.observe({role: 'store', op: 'write', type: 'video'}, function (args) {
-  writeIndexRecord(args.entity.key, args.entity);
-});
-
-//
-// And in some other code, somewhere else ...
-//
-var oddcast = require('oddcast');
-var transport = require('my-transport');
-var events = oddcast.eventChannel();
-events.use({role: 'store'}, transport({
-    url: 'http://mypubsub.io/channel/1'
-  }));
-
-// When a record is saved to the datastore, we broadcast it.
-events.broadcast({
-    role: 'store',
-    type: entity.type,
-    op: 'write',
-    entity: entity
-  });
-```
-
 
 API
 ---
 ### Bus
-TODO
+Create a new bus like this:
+```js
+const oddcast = require('oddcast');
+const bus = oddcast.bus();
+
+// You could hook up any compliant transport to the bus channels, but here we
+// just use the built in InprocessTransport which will suit most use cases.
+bus.events.use({}, oddcast.inprocessTransport());
+bus.commands.use({}, oddcast.inprocessTransport());
+bus.requests.use({}, oddcast.inprocessTransport());
+```
+And, use your bus as outlined in the examples avove.
+
+### Actions
+Action Objects are used internally by the command channel within a Bus instance. This gives the command system a little more power so it can be used as message passing API in a more advanced distributed queue. The only time you will see an action object is when you attach handlers to the event channel of a bus which listens to commands. Take this example:
+```js
+exports.initialize = function (bus) {
+
+  // The pattern {role: 'datastore'} is used by the
+  // bus.commands channel in this system. And, here, we are listening
+  // to the same pattern on the event channel.
+  bus.observe({role: 'datastore'}, function (action) {
+    console.log(action.pattern);
+    if (action.error) {
+      console.log('resulted in error');
+    } else {
+      console.log('resulted in success');
+    }
+  });
+};
+```
+The Bus instance will automatically emit events for all commands sent over the command channel. You can pick up the actions sent through the command channel by listening to the command pattern with `bus.observe()`. The action Object structure looks like this:
+```js
+{
+  id: 'abc123',
+  pattern: {role: 'datastore', cmd: 'getEntity'},
+  payload: {id: 'fido-dog'},
+  result: {type: 'Dog', name: 'Fido'},
+  error: null
+}
+```
+
+### Channels
+Additionally you can use the communication channels on their own without a bus. In reality, the bus is just a conveniance wrapper around these channels.
 
 ### Event Channel
+The event channel is a "send and forget" channel. You broadcast events using .broadcast(), but should expect no response. You create an event channel like this:
+```js
+var oddcast = require('oddcast');
+var events = oddcast.eventChannel();
+events.use({}, oddcast.inprocessTransport());
+```
+
 #### EventChannel#broadcast(pattern, payload)
 Broadcast an event on the underlying event transport. Sending a payload is optional.
 
@@ -172,6 +191,13 @@ Any messages sent via #broadcast() which do not match this pattern will not be p
 Any messages received by this transport which do not match this pattern will not be passed to the handlers.
 
 ### Command Channel
+A command channel is another "send and forget" channel. The difference is that in the underlying transport it tracks the success or failure of the command, and will remove the message from a message queue if the command fails. So, your command handlers should return a success or failure response. This can be done with a resolved or rejected promise, or simply by returning false for a failure. You create a command channel like this:
+```js
+var oddcast = require('oddcast');
+var commands = oddcast.commandChannel();
+commands.use({}, oddcast.inprocessTransport());
+```
+
 #### CommandChannel#send(pattern, payload)
 Send a message on the underlying command transport. A payload is required.
 
@@ -195,6 +221,13 @@ Any messages sent via #send() which do not match this pattern will not be passed
 Any messages received by this transport which do not match this pattern will not be passed to the handlers.
 
 ### Request Channel
+The request channel is very different from the event and command channels. It returns the response from your request handlers to the callers. Additionally the Oddcast RequestChannel automatically wraps your handler response in a Promise instance if the handler doesn't do it. You create a request channel like this:
+```js
+var oddcast = require('oddcast');
+var requests = oddcast.requestChannel();
+requests.use({}, oddcast.inprocessTransport());
+```
+
 #### RequestChannel#request(pattern, payload)
 Send a request on the underlying request transport. Sending a payload is optional.
 
