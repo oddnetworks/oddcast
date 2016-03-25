@@ -85,7 +85,7 @@ describe('Bus', function () {
 
 			it('rejects with an Error', function () {
 				expect(ERROR1.message).toBe(
-					'A Promise is expected from a queryHandler when no callback is supplied');
+					'A Promise is expected from a commandHandler when no callback is supplied');
 			});
 		});
 
@@ -105,7 +105,7 @@ describe('Bus', function () {
 			});
 
 			it('returns the value passed to the callback', function () {
-				expect(RES).toBe(CONST.RES1);
+				expect(RES).toEqual(CONST.RES1);
 			});
 		});
 
@@ -119,14 +119,14 @@ describe('Bus', function () {
 					ARGS = args;
 					return Promise.resolve(CONST.RES1);
 				});
-				this.bus.command({foo: 'bar'}, CONST.ARGS1).then(function (res) {
+				this.bus.sendCommand({foo: 'bar'}, CONST.ARGS1).then(function (res) {
 					RES = res;
 					done();
 				}, done.fail);
 			});
 
 			it('returns the value passed to the callback', function () {
-				expect(RES).toBe(CONST.RES1);
+				expect(RES).toEqual(CONST.RES1);
 			});
 
 			it('passes the given arguments Object', function () {
@@ -142,14 +142,15 @@ describe('Bus', function () {
 				this.bus.commandHandler({foo: 'bar'}, function () {
 					return Promise.reject(CONST.ERROR1);
 				});
-				this.bus.command({foo: 'bar'}, CONST.ARGS1).then(done, function (err) {
+				this.bus.sendCommand({foo: 'bar'}, CONST.ARGS1).then(done, function (err) {
 					ERROR = err;
 					done();
 				});
 			});
 
 			it('rejects with the rejected error', function () {
-				expect(ERROR).toBe(CONST.ERROR1);
+				expect(ERROR.name).toBe(CONST.ERROR1.name);
+				expect(ERROR.message).toBe(CONST.ERROR1.message);
 			});
 		});
 
@@ -170,7 +171,7 @@ describe('Bus', function () {
 			});
 
 			it('returns the value passed to the callback', function () {
-				expect(RES).toBe(CONST.RES1);
+				expect(RES).toEqual(CONST.RES1);
 			});
 
 			it('passes the given arguments Object', function () {
@@ -193,7 +194,8 @@ describe('Bus', function () {
 			});
 
 			it('rejects with the passed error', function () {
-				expect(ERROR).toBe(CONST.ERROR1);
+				expect(ERROR.name).toBe(CONST.ERROR1.name);
+				expect(ERROR.message).toBe(CONST.ERROR1.message);
 			});
 		});
 	});
