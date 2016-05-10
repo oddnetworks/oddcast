@@ -94,7 +94,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.commandHandler({foo: 'bar'}, function (args, next) {
+				this.bus.commandHandler({foo: 'bar'}, function (args, pattern, next) {
 					next(null, CONST.RES1);
 					return Promise.resolve(CONST.RES2);
 				});
@@ -160,7 +160,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.commandHandler({foo: 'bar'}, function (args, next) {
+				this.bus.commandHandler({foo: 'bar'}, function (args, pattern, next) {
 					ARGS = args;
 					next(null, CONST.RES1);
 				});
@@ -184,7 +184,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.commandHandler({foo: 'bar'}, function (args, next) {
+				this.bus.commandHandler({foo: 'bar'}, function (args, pattern, next) {
 					next(CONST.ERROR1);
 				});
 				this.bus.sendCommand({foo: 'bar'}, CONST.ARGS1).then(done, function (err) {
@@ -226,7 +226,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.queryHandler({foo: 'bar'}, function (args, next) {
+				this.bus.queryHandler({foo: 'bar'}, function (args, pattern, next) {
 					next(null, CONST.RES1);
 					return Promise.resolve(CONST.RES2);
 				});
@@ -291,7 +291,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.queryHandler({foo: 'bar'}, function (args, next) {
+				this.bus.queryHandler({foo: 'bar'}, function (args, pattern, next) {
 					ARGS = args;
 					next(null, CONST.RES1);
 				});
@@ -315,7 +315,7 @@ describe('Bus', function () {
 
 			beforeAll(function (done) {
 				this.bus = createBus();
-				this.bus.queryHandler({foo: 'bar'}, function (args, next) {
+				this.bus.queryHandler({foo: 'bar'}, function (args, pattern, next) {
 					next(CONST.ERROR1);
 				});
 				this.bus.query({foo: 'bar'}, CONST.ARGS1).then(done, function (err) {
