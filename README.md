@@ -21,14 +21,14 @@ exports.initialize = function (bus) {
   const datastore = require('some-datastore-api');
   const promisifiedStore = datastore.initializePromisified();
 
-  bus.commandHandler({role: 'datastore', cmd: 'createRecord'}, function (payload) {
+  bus.commandHandler({role: 'datastore', cmd: 'createRecord'}, function (payload, pattern) {
     return promisifiedStore.create(payload).then(function (res) {
       payload.id = res.id;
       return payload;
     });
   });
 
-  bus.queryHandler({role: 'datastore', cmd: 'fetchRecord'}, function (args) {
+  bus.queryHandler({role: 'datastore', cmd: 'fetchRecord'}, function (args, pattern) {
     return promisifiedStore.fetch({id: args.id});
   });
 
@@ -37,7 +37,7 @@ exports.initialize = function (bus) {
   //
   const store = datastore.initialize();
 
-  bus.commandHandler({role: 'datastore', cmd: 'createRecord'}, function (payload, next) {
+  bus.commandHandler({role: 'datastore', cmd: 'createRecord'}, function (payload, pattern, next) {
     store.create(payload, function (err, res) {
       if (err) {
         return next(err);
@@ -47,7 +47,7 @@ exports.initialize = function (bus) {
     });
   });
 
-  bus.queryHandler({role: 'datastore', cmd: 'fetchRecord'}, function (args, next) {
+  bus.queryHandler({role: 'datastore', cmd: 'fetchRecord'}, function (args, pattern, next) {
     store.fetch(payload, next);
   });
 };
