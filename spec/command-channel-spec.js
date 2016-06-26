@@ -3,7 +3,7 @@
 'use strict';
 
 var Channel = require('../lib/channel');
-var CommandChannel = require('../lib/command_channel');
+var CommandChannel = require('../lib/command-channel');
 
 describe('CommandChannel', function () {
 	beforeAll(function () {

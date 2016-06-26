@@ -3,7 +3,7 @@
 'use strict';
 
 var Channel = require('../lib/channel');
-var EventChannel = require('../lib/event_channel');
+var EventChannel = require('../lib/event-channel');
 
 describe('EventChannel', function () {
 	beforeAll(function () {

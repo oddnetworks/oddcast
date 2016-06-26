@@ -2,7 +2,7 @@
 /* eslint-disable max-nested-callbacks */
 'use strict';
 
-var PatternMatcher = require('../lib/pattern_matcher');
+var PatternMatcher = require('../lib/pattern-matcher');
 
 describe('PatternMatcher', function () {
 	var A = {a: 0};

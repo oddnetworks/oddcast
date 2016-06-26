@@ -6,7 +6,7 @@ const Promise = require('bluebird');
 const errors = require('../lib/errors');
 const Channel = require('../lib/channel');
 const Transport = require('./support/transport');
-const StreamTransport = require('./support/stream_transport');
+const StreamTransport = require('./support/stream-transport');
 
 const NoHandlerError = errors.NoHandlerError;
 const NoTransportError = errors.NoTransportError;

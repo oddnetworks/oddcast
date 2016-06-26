@@ -4,7 +4,7 @@
 
 var Channel = require('../lib/channel');
 var errors = require('../lib/errors');
-var RequestChannel = require('../lib/request_channel');
+var RequestChannel = require('../lib/request-channel');
 var Transport = require('./support/transport');
 
 var NoTransportError = errors.NoTransportError;
