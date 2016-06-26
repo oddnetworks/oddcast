@@ -3,14 +3,13 @@
 'use strict';
 
 const Promise = require('bluebird');
-
 const errors = require('../lib/errors');
-const NoHandlerError = errors.NoHandlerError;
-const NoTransportError = errors.NoTransportError;
-
 const Channel = require('../lib/channel');
 const Transport = require('./support/transport');
 const StreamTransport = require('./support/stream_transport');
+
+const NoHandlerError = errors.NoHandlerError;
+const NoTransportError = errors.NoTransportError;
 
 describe('Channel', function () {
 	describe('addSingleHandler', function () {

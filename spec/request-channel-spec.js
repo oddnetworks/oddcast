@@ -3,11 +3,11 @@
 'use strict';
 
 var Channel = require('../lib/channel');
+var errors = require('../lib/errors');
 var RequestChannel = require('../lib/request_channel');
 var Transport = require('./support/transport');
 
-const errors = require('../lib/errors');
-const NoTransportError = errors.NoTransportError;
+var NoTransportError = errors.NoTransportError;
 
 describe('EventChannel', function () {
 	beforeAll(function () {
