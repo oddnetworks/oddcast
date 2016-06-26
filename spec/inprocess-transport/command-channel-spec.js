@@ -19,6 +19,16 @@ describe('InprocessTransport with CommandChannel', function () {
 		this.channel.remove({});
 	});
 
+	it('defaults payload to null', function (done) {
+		this.channel.receive({role: 'foo'}, function (payload) {
+			expect(payload).toBe(null);
+			done();
+			return null;
+		});
+
+		this.channel.send({role: 'foo'});
+	});
+
 	it('calls handlers asynchronously', function (done) {
 		var async = false;
 

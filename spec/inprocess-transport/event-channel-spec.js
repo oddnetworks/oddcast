@@ -20,6 +20,16 @@ describe('InprocessTransport with EventChannel', function () {
 		this.channel.remove({});
 	});
 
+	it('defaults payload to null', function (done) {
+		this.channel.observe({role: 'foo'}, function (payload) {
+			expect(payload).toBe(null);
+			done();
+			return null;
+		});
+
+		this.channel.broadcast({role: 'foo'});
+	});
+
 	it('calls handlers asynchronously', function (done) {
 		var async = false;
 
