@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/oddnetworks/oddcast/",
   "dependencies": {
+    "bloomrun": "^2.3.0",
     "bluebird": "~3.4.0"
   },
   "devDependencies": {
