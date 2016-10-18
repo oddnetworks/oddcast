@@ -536,13 +536,15 @@ describe('Channel', function () {
 			it('throws a NoTransportError', function () {
 				const channel = this.channel;
 
+				const pattern = {role: 'foo', cmd: 'bar'};
+
 				function broadcast() {
-					channel.broadcast({role: 'foo', cmd: 'bar'});
+					channel.broadcast(pattern);
 				}
 
 				expect(broadcast).toThrowError(
 					NoTransportError,
-					'No transport mounted for pattern role:foo,cmd:bar'
+					`No transport mounted for pattern ${JSON.stringify(pattern)}`
 				);
 			});
 		});
