@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/oddnetworks/oddcast/",
   "dependencies": {
+    "bloomrun": "^2.3.0",
     "bluebird": "~3.4.0"
   },
   "devDependencies": {
@@ -23,5 +24,10 @@
   "bugs": {
     "url": "https://github.com/oddnetworks/oddcast/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "xo": {
+    "rules": {
+      "no-use-extend-native/no-use-extend-native": 0
+    }
+  }
 }

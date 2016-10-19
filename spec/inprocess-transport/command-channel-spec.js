@@ -132,6 +132,6 @@ describe('InprocessTransport with CommandChannel', function () {
 
 	it('removes all handlers (in afterEach())', function () {
 		var matcher = this.channel.handlerMatcher;
-		expect(Object.keys(matcher.index).length).toBe(0);
+		expect(matcher.index.list().length).toBe(0);
 	});
 });

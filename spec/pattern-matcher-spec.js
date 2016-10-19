@@ -35,11 +35,11 @@ describe('PatternMatcher', function () {
 
 	it('finds by decreasing specificity', function () {
 		var res = this.matcher.find({baz: 'zee', foo: 'bar', cat: 'g'});
-		expect(res.length).toBe(3);
+		expect(res.length).toBe(4);
 		expect(res).toContain(A);
 		expect(res).toContain(B);
 		expect(res).toContain(C);
-		expect(res).not.toContain(D);
+		expect(res).toContain(D);
 		expect(res).not.toContain(E);
 	});
 
@@ -61,8 +61,8 @@ describe('PatternMatcher', function () {
 			this.matcher.add({baz: 'zee'}, C);
 			this.matcher.add({baz: 'zee', bar: 'zee'}, D);
 			this.before = Object.freeze({
-				'foo:bar': this.matcher.find({foo: 'bar'}).slice(),
-				'baz:zee,bar:zee': this.matcher.find({baz: 'zee', bar: 'zee'}).slice()
+				'foo:bar': this.matcher.find({foo: 'bar'}),
+				'baz:zee,bar:zee': this.matcher.find({baz: 'zee', bar: 'zee'})
 			});
 			this.matcher.remove({foo: 'bar'}, A);
 			this.matcher.remove({baz: 'zee'});
@@ -91,8 +91,8 @@ describe('PatternMatcher', function () {
 			this.matcher.add({foo: 'baz'}, B);
 
 			this.before = Object.freeze({
-				'foo:bar': this.matcher.find({foo: 'bar'}).slice(),
-				'foo:baz': this.matcher.find({foo: 'baz'}).slice()
+				'foo:bar': this.matcher.find({foo: 'bar'}),
+				'foo:baz': this.matcher.find({foo: 'baz'})
 			});
 
 			this.matcher.remove({});
