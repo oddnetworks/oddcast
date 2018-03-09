@@ -1,6 +1,6 @@
 {
   "name": "oddcast",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "An event broadcast and queue API module.",
   "author": "Odd Networks (http://oddnetworks.co)",
   "main": "./lib/oddcast.js",
@@ -10,9 +10,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/oddnetworks/oddcast.git"
+    "url": "https://gitlab.com/oddnetworks/oddworks/oddcast.git"
   },
-  "homepage": "https://github.com/oddnetworks/oddcast/",
+  "homepage": "https://gitlab.com/oddnetworks/oddworks/oddcast/",
   "dependencies": {
     "bloomrun": "^2.3.0",
     "bluebird": "~3.4.0"
@@ -22,7 +22,7 @@
     "xo": "~0.16.0"
   },
   "bugs": {
-    "url": "https://github.com/oddnetworks/oddcast/issues"
+    "url": "https://gitlab.com/oddnetworks/oddworks/oddcast/issues"
   },
   "license": "MIT",
   "xo": {

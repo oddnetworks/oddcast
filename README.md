@@ -5,7 +5,7 @@ Oddcast
 [![NPM][npm-banner]][npm-banner-url]
 
 [![npm version][npm-badge]][npm-url]
-[![Build Status][travis-badge]][travis-url]
+[![Build Status][gitlab-ci-badge]][gitlab-ci-url]
 [![Dependency Status][david-badge]][david-url]
 
 ### Why?
@@ -274,7 +274,7 @@ Unless otherwise indicated, all source code is licensed under the MIT license. S
 [npm-banner-url]: https://nodei.co/npm/oddcast/
 [npm-badge]: https://badge.fury.io/js/oddcast.svg
 [npm-url]: https://badge.fury.io/js/oddcast
-[travis-badge]: https://api.travis-ci.org/oddnetworks/oddcast.svg
-[travis-url]: https://travis-ci.org/oddnetworks/oddcast
+[gitlab-ci-badge]: https://gitlab.com/oddnetworks/oddworks/oddcast/badges/master/pipeline.svg
+[gitlab-ci-url]: https://gitlab.com/oddnetworks/oddworks/oddcast/commits/master
 [david-badge]: https://david-dm.org/oddnetworks/oddcast.svg
 [david-url]: https://david-dm.org/oddnetworks/oddcast
